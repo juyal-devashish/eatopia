@@ -30,13 +30,14 @@ class LlmSettings(BaseModel):
     model: str = "claude-sonnet-5-5"  # measured on the condition-match eval; see evals/results/README.md
     timeout_seconds: float = 30
     max_retries: int = 1
-    session_cap: int = 5
+    session_cap: int = 8  # three voice screens, a retry or two, and the dietitian summary
     daily_cap: int = 300
     match_effort: str = "low"
     match_max_tokens: int = 4_000
     summary_effort: str = "medium"
     summary_max_tokens: int = 4_000
     max_member_chars: int = 300
+    max_voice_chars: int = 1_500  # a few spoken sentences
     refusal_fallback: bool = True
 
 

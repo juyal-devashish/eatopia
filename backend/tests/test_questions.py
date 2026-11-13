@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from app.questions import SCHEMA_PATH, QuestionSchema, load_schema
 
-NON_QUESTION_KINDS = {"interstitial", "health_benefit", "health_permission", "health_review"}
+NON_QUESTION_KINDS = {"interstitial", "health_benefit", "health_permission", "health_review", "voice"}
 
 
 def _ids(mode: str) -> list[str]:
@@ -46,10 +46,44 @@ def test_today_asks_permission_after_about_you_like_the_current_flow() -> None:
     assert "health_benefit" not in ids
 
 
-def test_review_card_covers_every_fact() -> None:
+def test_review_card_covers_every_health_linked_question() -> None:
     review = next(s for s in load_schema().screens if s.kind == "health_review")
 
-    assert set(review.review_rows) == {"sex_at_birth", "date_of_birth", "height", "weight", "steps"}
+    assert set(review.review_rows) == {
+        "sex_at_birth",
+        "date_of_birth",
+        "height",
+        "weight",
+        "steps",
+        "exercise_frequency",
+        "activity_level",
+    }
+
+
+def test_voice_screens_cover_every_question_health_cannot_answer_except_gender() -> None:
+    schema = load_schema()
+    questions = {s.id for s in schema.for_mode("health_first") if s.kind not in NON_QUESTION_KINDS and s.health is None}
+
+    assert schema.covered("health_first") == questions - {"gender_identity"}
+    assert schema.covered("today") == frozenset()
+
+
+def test_a_voice_screen_cannot_cover_a_health_question() -> None:
+    raw = _raw()
+    voice = next(s for s in raw["screens"] if s["id"] == "voice_goals")
+    voice["covers"] = [*voice["covers"], "weight"]
+
+    with pytest.raises(ValidationError, match="must be a question Health can't answer"):
+        QuestionSchema.model_validate(raw)
+
+
+def test_a_question_is_covered_once() -> None:
+    raw = _raw()
+    voice = next(s for s in raw["screens"] if s["id"] == "voice_food")
+    voice["covers"] = [*voice["covers"], "main_goal"]
+
+    with pytest.raises(ValidationError, match="covered by one voice screen only"):
+        QuestionSchema.model_validate(raw)
 
 
 def test_weight_can_always_be_skipped() -> None:
@@ -78,12 +112,12 @@ def test_permission_after_a_health_question_is_rejected_in_health_first() -> Non
         QuestionSchema.model_validate(raw)
 
 
-def test_review_row_must_be_a_fact() -> None:
+def test_review_row_must_be_health_linked() -> None:
     raw = _raw()
     review = next(s for s in raw["screens"] if s["id"] == "health_review")
-    review["review_rows"] = [*review["review_rows"], "exercise_frequency"]
+    review["review_rows"] = [*review["review_rows"], "meals_per_day"]
 
-    with pytest.raises(ValidationError, match="must be a Health fact"):
+    with pytest.raises(ValidationError, match="must be a Health-linked screen"):
         QuestionSchema.model_validate(raw)
 
 

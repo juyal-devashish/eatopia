@@ -14,7 +14,8 @@ export type ScreenKind =
   | "condition_picker"
   | "health_benefit"
   | "health_permission"
-  | "health_review";
+  | "health_review"
+  | "voice";
 
 export interface Option {
   id: string;
@@ -38,6 +39,8 @@ export interface Screen {
   catalog: string | null;
   review_rows: string[];
   read_types: string[];
+  /** A voice screen: the questions one spoken answer fills in. */
+  covers: string[];
 }
 
 export interface Section {
@@ -71,7 +74,7 @@ export type AnswerValue = unknown;
 
 export interface Answer {
   value: AnswerValue;
-  source: "health_confirmed" | "health_changed" | "member";
+  source: "health_confirmed" | "health_changed" | "voice_confirmed" | "member";
 }
 
 export interface RuleResult {
@@ -131,6 +134,14 @@ export interface RunStats {
   filled_from_health: number;
   changed_from_health: number;
   estimates_taken: number;
+  filled_from_voice: number;
+}
+
+/** A voice screen's questions filled from what the member said. `null` means not mentioned. */
+export interface ExtractResult {
+  call_id: number;
+  status: string;
+  answers: Record<string, AnswerValue>;
 }
 
 export interface SummaryResult {
@@ -154,4 +165,6 @@ export interface SessionState {
   tap_count: number;
   stats: RunStats;
   finished: boolean;
+  /** Simulated dictation for the voice screens: synthetic text the demo plays as if spoken. */
+  voice_scripts: Record<string, string>;
 }

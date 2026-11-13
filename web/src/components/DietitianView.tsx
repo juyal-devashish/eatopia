@@ -11,10 +11,11 @@ import { SecondaryButton } from "./ui";
 const SOURCE: Record<string, { label: string; className: string }> = {
   health_confirmed: { label: "From Health, confirmed", className: "bg-accent-soft text-accent" },
   health_changed: { label: "From Health, changed", className: "bg-warn-soft text-warn-ink" },
+  voice_confirmed: { label: "From what they said, confirmed", className: "bg-accent-soft text-ink" },
   member: { label: "Entered by member", className: "bg-page text-muted" },
 };
 
-const NON_QUESTIONS = new Set(["interstitial", "health_benefit", "health_permission", "health_review"]);
+const NON_QUESTIONS = new Set(["interstitial", "health_benefit", "health_permission", "health_review", "voice"]);
 
 /** What a dietitian would read: a short summary, then every answer with where it came from. */
 export function DietitianView({

@@ -10,14 +10,16 @@ from sqlalchemy.orm import Session
 
 from app.answers import InvalidAnswer, validate
 from app.config import Settings
-from app.db import HealthSummaryRow, IntakeAnswer, IntakeSession
+from app.db import HealthSummaryRow, IntakeAnswer, IntakeSession, LlmCall
 from app.health.members import MEMBER_IDS, load_member
 from app.health.models import MemberId, resolve
 from app.health.summary import HealthSummaryV1, build_summary
 from app.questions import MODES, Mode, QuestionSchema, Screen
 from app.rules import RuleResult, suggest
+from app.voice import load_scripts
 
-Source = Literal["health_confirmed", "health_changed", "member"]
+Source = Literal["health_confirmed", "health_changed", "voice_confirmed", "member"]
+VOICE_PURPOSE = "voice_extract"
 
 
 class SessionNotFound(LookupError):
@@ -40,6 +42,7 @@ class RunStats(BaseModel):
     filled_from_health: int
     changed_from_health: int
     estimates_taken: int
+    filled_from_voice: int
 
 
 class SessionState(BaseModel):
@@ -58,6 +61,7 @@ class SessionState(BaseModel):
     tap_count: int
     stats: RunStats
     finished: bool
+    voice_scripts: dict[str, str]  # simulated dictation for the voice screens (synthetic member text)
 
 
 def _member_id(session: IntakeSession) -> MemberId:
@@ -167,13 +171,10 @@ def _answers(db: Session, session: IntakeSession) -> dict[str, IntakeAnswer]:
 
 def _stats(answers: dict[str, IntakeAnswer], schema: QuestionSchema) -> RunStats:
     kinds = {s.id: s.health.kind for s in schema.screens if s.health is not None}
-    review = answers.get("health_review")
-    # Facts confirmed on the review card share its key; they were never separate screens.
-    on_card = {
-        k
-        for k, row in answers.items()
-        if review is not None and k in kinds and row.idempotency_key == review.idempotency_key
-    }
+    # Answers saved with the review card or a voice screen share its key; they were never separate screens.
+    group_ids = {s.id for s in schema.screens if s.kind == "health_review" or s.kind == "voice"}
+    group_keys = {answers[g].idempotency_key for g in group_ids if g in answers}
+    on_card = {k for k, row in answers.items() if k not in group_ids and row.idempotency_key in group_keys}
     return RunStats(
         screens_seen=len(answers) - len(on_card),
         filled_from_health=sum(
@@ -183,7 +184,22 @@ def _stats(answers: dict[str, IntakeAnswer], schema: QuestionSchema) -> RunStats
         estimates_taken=sum(
             1 for k, r in answers.items() if kinds.get(k) == "estimate" and r.source == "health_confirmed"
         ),
+        filled_from_voice=sum(1 for r in answers.values() if r.source == "voice_confirmed"),
     )
+
+
+def voice_extraction(db: Session, session: IntakeSession, screen_id: str) -> dict[str, Any] | None:
+    """The answers the latest successful extraction proposed for a voice screen, or None."""
+    rows = db.scalars(
+        select(LlmCall)
+        .where(LlmCall.session_id == session.id, LlmCall.purpose == VOICE_PURPOSE, LlmCall.status == "ok")
+        .order_by(LlmCall.id.desc())
+    )
+    for row in rows:
+        if row.result and row.result.get("screen_id") == screen_id:
+            answers: dict[str, Any] = row.result.get("answers", {})
+            return answers
+    return None
 
 
 def state(
@@ -193,8 +209,9 @@ def state(
     review_rows = _review_rows(schema, suggestions)
     answers = _answers(db, session)
     next_screen = None
+    covered = schema.covered(_mode(session))
     for screen in schema.for_mode(_mode(session)):
-        if screen.id in answers:
+        if screen.id in answers or screen.id in covered:  # a voice screen fills covered questions in
             continue
         if screen.kind == "health_review" and not review_rows:
             continue  # nothing to review (access denied, or no usable data)
@@ -212,6 +229,7 @@ def state(
         tap_count=session.tap_count,
         stats=_stats(answers, schema),
         finished=next_screen is None,
+        voice_scripts=load_scripts(_member_id(session)) if session.mode == "health_first" else {},
     )
 
 
@@ -292,6 +310,19 @@ def submit_answer(
                 now,
                 existing,
             )
+        _upsert(db, session, screen.id, {"confirmed": True}, "member", None, idempotency_key, now, existing)
+    elif screen.kind == "voice":
+        rows = value.get("rows") if isinstance(value, dict) and set(value) == {"rows"} else None
+        if not isinstance(rows, dict) or set(rows) != set(screen.covers):
+            raise InvalidAnswer(f"{screen.id}: rows must be exactly {list(screen.covers)}")
+        by_id = {s.id: s for s in schema.screens}
+        for row_id in screen.covers:
+            validate(by_id[row_id], rows[row_id])
+        proposed = voice_extraction(db, session, screen.id) or {}
+        for row_id in screen.covers:
+            heard = proposed.get(row_id)
+            source: Source = "voice_confirmed" if heard is not None and heard == rows[row_id] else "member"
+            _upsert(db, session, row_id, rows[row_id], source, None, idempotency_key, now, existing)
         _upsert(db, session, screen.id, {"confirmed": True}, "member", None, idempotency_key, now, existing)
     else:
         validate(screen, value)

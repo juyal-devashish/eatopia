@@ -2,11 +2,17 @@
 
 **Live demo: https://eatopia-demo.vercel.app** (synthetic data only; best on a phone)
 
-A nutrition app's onboarding asks for Apple Health access in its third section, after the member has already typed
-five answers Health could have given, and then asks two more by hand. This demo moves the permission to the start
-and turns Health data into **answers the member confirms**: five facts on one review card, two estimates shown as
-hints. Plain code does that mapping; the model never sees a Health value. Claude is used only where free text helps:
-matching "my sugar was high at my last check-up" to a condition list, and writing a short note for the dietitian.
+A nutrition app's onboarding is 25 screens of questions, with Apple Health access asked in the third section after
+the member has already typed answers Health could have given. This demo asks the same questions in **7 screens**:
+
+1. Apple Health first. Plain code turns its data into seven answers on one card: five facts filled in, two
+   estimates the member taps to accept. The model never sees a Health value.
+2. Then three voice prompts. The member says a few sentences ("I want more energy, my doctor mentioned
+   prediabetes, I'm vegetarian and dairy upsets me…") and Claude fills the remaining 15 questions from them, limited
+   to each question's own options. The member confirms, changes or chooses each answer on the same screen.
+
+Dictation is simulated in the web demo (the mic plays a synthetic member's words); on an iPhone it would be
+on-device speech recognition sending only text. Claude also writes a short note for the dietitian.
 
 Built as a work sample for Eatopia. Not affiliated with Eatopia: the look follows its design language, but no logo,
 name, copy or screenshots of its app are used. Synthetic data only, no real member data.
@@ -14,18 +20,21 @@ name, copy or screenshots of its app are used. Synthetic data only, no real memb
 ## Try it in two minutes
 
 1. Tap **Start onboarding**. You go through as a synthetic member whose watch has recorded everything.
-2. Allow the simulated Apple Health access, check the answers it filled in, and tap through the rest.
-3. The finish screen compares your screens and taps with the same questions asked one per screen.
-4. Open **See what the dietitian gets**: a summary, then every answer marked *from Health, confirmed*, *changed* or
-   *entered by member*.
-5. On a laptop, **Behind the scenes** sits beside the app (on a phone, tap **Details**): the member's Health data,
+2. Allow the simulated Apple Health access and check the seven answers it filled in.
+3. On each voice screen, tap the mic: the synthetic member's words appear, then the answers they fill in. Change
+   any of them, or clear the text and type your own words to see Claude fill the form from them.
+4. The finish screen compares your screens and taps with the same questions asked one per screen.
+5. Open **See what the dietitian gets**: a summary, then every answer marked *from Health, confirmed*, *changed*,
+   *from what they said, confirmed* or *entered by member*.
+6. On a laptop, **Behind the scenes** sits beside the app (on a phone, tap **Details**): the member's Health data,
    what each rule did, and every request sent to the model, word for word.
 
 ## What was measured
 
 | | |
 |---|---|
-| Screens and taps | 22 screens with 5 answers filled from Health and 2 suggested, against 25 screens and at least 45 taps for the same questions one per screen |
+| Screens | 7, against 25 for the same questions one per screen (at least 45 taps there) |
+| Voice extraction | 30 synthetic transcripts scored per answer (filled correctly, wrongly, invented, missed); the free dry run with a keyword stand-in fills 47% correctly. Live run with Claude not yet made |
 | Condition matching (Claude Sonnet 5.5) | 45/45 right condition in the top 3 and first; 7/7 correctly "no match", including a prompt injection; 52 synthetic phrasings ([results](backend/evals/results/README.md)) |
 | Keyword baseline on the same set | 13/45 in the top 3 |
 | Live model calls | about 3 s each (2.6 s match, 3.6 s summary; one live check each) |
@@ -33,7 +42,7 @@ name, copy or screenshots of its app are used. Synthetic data only, no real memb
 The matching set is written by us and mostly clear-cut, so read 45/45 as "handles plain descriptions", not "never
 misses". Harder phrasings are the next step.
 
-## The one request an iPhone app would send
+## The two requests an iPhone app would send
 
 The web demo can't read HealthKit, so the server builds the summary a phone would send, from synthetic HealthKit
 samples. A real app sends this after reading HealthKit, and nothing else changes:
@@ -61,12 +70,23 @@ Seven rules in [`backend/app/rules.py`](backend/app/rules.py) turn it into sugge
 estimated: weight older than 90 days, fewer than 14 days of steps, or no workout ever recorded (which can't be told
 apart from "doesn't log workouts").
 
+On each voice screen the app transcribes speech on the device and sends only the text:
+
+```http
+POST /sessions/{id}/screens/voice_food/extract
+{ "text": "I'm vegetarian. Lactose upsets my stomach…", "request_key": "…" }
+```
+
+The reply is one answer (or `null`, not mentioned) per question the screen covers, each limited to that question's
+listed options. The server re-checks every answer and drops "own words" the member didn't actually say.
+
 ## The privacy test
 
 No Health value reaches the model. Three things hold that in place:
 
 - [`backend/app/claude_client.py`](backend/app/claude_client.py) is the only code that calls Claude. Its functions
-  take member-typed text (emails, links, dates and long numbers removed) and our condition list; a test checks
+  take what the member typed or said (emails, links, dates and long numbers removed) and our own question, option
+  and condition lists; a test checks
   their signatures and that the module imports nothing from the Health, rules or database code.
 - The dietitian summary gets the member's answers to questions that aren't Health-linked, plus placeholder names
   like `{{weight}}`. Code fills those in afterwards.

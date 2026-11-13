@@ -32,6 +32,7 @@ export function ScreenView(props: ScreenProps & { conditions: Condition[] }) {
     case "condition_picker":
       return <ConditionScreen {...props} />;
     case "health_review":
-      return null; // rendered by Onboarding, which has the rows and suggestions
+    case "voice":
+      return null; // rendered by Onboarding, which has the rows, suggestions and the session
   }
 }

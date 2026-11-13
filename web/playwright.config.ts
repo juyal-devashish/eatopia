@@ -28,6 +28,8 @@ export default defineConfig({
         LLM_TRANSPORT: "offline",
         // Every test starts sessions from the same address; the per-client limit is covered by backend tests.
         SESSIONS_PER_HOUR_PER_CLIENT: "0",
+        // Local runs share one database all day; the offline stand-in costs nothing, so lift the daily cap.
+        LLM: JSON.stringify({ daily_cap: 1_000_000 }),
       },
       timeout: 120_000,
     },

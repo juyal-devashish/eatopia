@@ -14,6 +14,8 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
   The dev server uses `intake` (`DATABASE_URL`).
 - Model calls need `ANTHROPIC_API_KEY` (or an `ant auth login` profile). Tests never need it: unit tests use
   `tests/fakes.py`, and end-to-end runs set `LLM_TRANSPORT=offline` (a keyword matcher, `app/offline_model.py`).
+- `cd backend && uv run python -m evals.voice_extract` is a free dry run of the voice extraction eval; `--live`
+  makes one real Claude call per case (30). Ask before running it.
 - `cd backend && uv run python -m evals.condition_match` is a free dry run of the condition-match eval;
   `--live` makes one real Claude call per case (about 50). Ask before running it.
 - `make web-dev`: web app on http://localhost:3000 (Next picks 3001 if 3000 is busy; then start the API with

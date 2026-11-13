@@ -26,6 +26,8 @@ class OfflineTransport:
         content: str = request["messages"][0]["content"]
         if "<answers>" in content:
             return self._reply({"summary": OFFLINE_SUMMARY})
+        if "<questions>" in content:
+            return self._reply(self._extract(content))
         member = _words(content.split("<member_text>", 1)[1])
         listing = re.search(r"<(conditions|options)>\n(.*?)\n</\1>", content, re.S)
         matches = []
@@ -34,6 +36,26 @@ class OfflineTransport:
             if _words(label) & member:
                 matches.append({"id": choice_id, "confidence": "medium"})
         return self._reply({"matches": matches[:3]})
+
+    @staticmethod
+    def _extract(content: str) -> dict[str, Any]:
+        """Voice intake: an option counts when every word of its label was said; ambiguity leaves it unanswered."""
+        said = _words(content.split("<member_text>", 1)[1])
+        conditions = re.search(r"<conditions>\n(.*?)\n</conditions>", content, re.S)
+        catalog = [line.partition(": ")[::2] for line in conditions.group(1).splitlines()] if conditions else []
+        answers: dict[str, Any] = {}
+        for qid, kind, body in re.findall(r'<question id="([^"]+)" answer="([^"]+)">(.*?)</question>', content, re.S):
+            options = [line[2:].partition(": ")[::2] for line in body.splitlines() if line.startswith("- ")]
+            if kind.startswith("one condition"):
+                options = catalog + options
+            heard = [oid for oid, label in options if _words(label) and _words(label) <= said]
+            if kind == "one or more options":
+                answers[qid] = heard or None
+            elif kind == "the member's own words":
+                answers[qid] = None
+            else:
+                answers[qid] = heard[0] if len(heard) == 1 else None
+        return answers
 
     @staticmethod
     def _reply(payload: dict[str, Any]) -> dict[str, Any]:

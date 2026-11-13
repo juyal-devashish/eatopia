@@ -21,6 +21,7 @@ MIN_TAPS: dict[ScreenKind, int] = {
     "health_benefit": 1,  # Continue
     "health_permission": 1,  # Allow
     "health_review": 1,  # Confirm
+    "voice": 2,  # mic, Confirm
 }
 
 

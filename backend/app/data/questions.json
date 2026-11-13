@@ -28,7 +28,7 @@
       ]
     },
     {
-      "id": "dietitian_note", "section": "goals", "kind": "interstitial",
+      "id": "dietitian_note", "section": "goals", "kind": "interstitial", "modes": ["today"],
       "title": "A registered dietitian reviews your answers",
       "subtitle": "They use them to build your starting plan, then adjust it as you go."
     },
@@ -53,7 +53,7 @@
       "id": "health_review", "section": "about", "kind": "health_review", "modes": ["health_first"],
       "title": "From Apple Health",
       "subtitle": "Check each answer. You can change any of them.",
-      "review_rows": ["sex_at_birth", "date_of_birth", "height", "weight", "steps"]
+      "review_rows": ["sex_at_birth", "date_of_birth", "height", "weight", "steps", "exercise_frequency", "activity_level"]
     },
     {
       "id": "gender_identity", "section": "about", "kind": "single_choice",
@@ -167,6 +167,12 @@
       "health": {"kind": "fact", "rule": "steps_median_30d"}
     },
     {
+      "id": "voice_goals", "section": "health", "kind": "voice", "modes": ["health_first"],
+      "title": "What would you like help with?",
+      "subtitle": "Say it in your own words: your main goal, any weight goal, a health concern, what makes eating well hard, and how often you eat.",
+      "covers": ["main_goal", "weight_goal", "health_concern", "eating_barriers", "meals_per_day"]
+    },
+    {
       "id": "health_concern", "section": "health", "kind": "condition_picker",
       "title": "Is there one health concern you'd most like help with?",
       "subtitle": "Describe it in your own words, or pick from the list.",
@@ -189,6 +195,12 @@
         {"id": "support", "label": "I'd like more support"},
         {"id": "other", "label": "Something else", "free_text": true}
       ]
+    },
+    {
+      "id": "voice_food", "section": "food", "kind": "voice", "modes": ["health_first"],
+      "title": "How do you eat?",
+      "subtitle": "How you eat, any allergies or intolerances, foods you'd rather avoid, and the cuisines that feel like home.",
+      "covers": ["diet_pattern", "allergies", "foods_avoided", "cuisines"]
     },
     {
       "id": "diet_pattern", "section": "food", "kind": "single_choice",
@@ -243,6 +255,12 @@
         {"id": "european", "label": "European"},
         {"id": "other", "label": "Something else", "free_text": true}
       ]
+    },
+    {
+      "id": "voice_kitchen", "section": "kitchen", "kind": "voice", "modes": ["health_first"],
+      "title": "Your kitchen, and anything else",
+      "subtitle": "Who cooks, time for a weeknight dinner, your food budget, how often you eat out, any medications, and anything else your dietitian should know.",
+      "covers": ["who_cooks", "weeknight_time", "food_budget", "eating_out", "medications", "anything_else"]
     },
     {
       "id": "who_cooks", "section": "kitchen", "kind": "single_choice",
