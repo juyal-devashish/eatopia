@@ -45,7 +45,10 @@ def test_placeholders_are_filled_from_answers() -> None:
         "Weighs {{weight}}, height {{height}}, walks {{ steps }}, and {{password}}.", SCHEMA, answers, CATALOG
     )
 
-    assert text == f"Weighs 162 lb (73.4 kg), height {NOT_PROVIDED}, walks 9,000 to 11,999, and {NOT_PROVIDED}."
+    assert (
+        text
+        == f"Weighs 162 lb (73.4 kg), height {NOT_PROVIDED}, walks 9,000 to 11,999 steps a day, and {NOT_PROVIDED}."
+    )
     assert used == ["weight", "height", "steps"]
 
 
@@ -62,7 +65,7 @@ def test_placeholders_are_the_health_linked_questions() -> None:
 
 
 def test_summary_endpoint_fills_health_values_after_the_model(client: TestClient, fake_model: FakeTransport) -> None:
-    fake_model.responder = _summary_reply("Wants more energy. Weight {{weight}}; about {{steps}} steps a day.")
+    fake_model.responder = _summary_reply("Wants more energy. Weight {{weight}}; walks {{steps}}.")
     state, _ = _run_to(client, _start(client, "a", "health_first"))
     key = _key()
 
@@ -71,7 +74,7 @@ def test_summary_endpoint_fills_health_values_after_the_model(client: TestClient
 
     assert body["written_by_model"] is True
     assert body["writer"] == "claude-sonnet-5-5"
-    assert body["text"] == "Wants more energy. Weight 162 lb (73.4 kg); about 9,000 to 11,999 steps a day."
+    assert body["text"] == "Wants more energy. Weight 162 lb (73.4 kg); walks 9,000 to 11,999 steps a day."
     assert body["health_values_filled"] == ["weight", "steps"]
     assert again == body
     assert len(fake_model.requests) == 1
@@ -90,3 +93,27 @@ def test_summary_falls_back_to_a_template_when_refused(client: TestClient, fake_
     assert body["status"] == "refused"
     assert body["written_by_model"] is False
     assert "Every answer is listed below" in body["text"]
+
+
+def test_health_answers_read_as_phrases_inside_a_sentence() -> None:
+    answers = {
+        "sex_at_birth": "female",
+        "date_of_birth": "1985-06-02",
+        "height": {"cm": 168.3},
+        "exercise_frequency": "d5_6",
+        "activity_level": "very",
+        "steps": "s6000_8999",
+    }
+
+    text, _ = fill_placeholders(
+        "She was {{sex_at_birth}}, {{date_of_birth}}, is {{height}}, {{exercise_frequency}}, {{activity_level}} "
+        "and walks {{steps}}.",
+        SCHEMA,
+        answers,
+        CATALOG,
+    )
+
+    assert text == (
+        "She was assigned female at birth, born 2 June 1985, is 5 ft 6 in (168.3 cm) tall, exercises 5 to 6 days "
+        "a week, is very active day to day and walks 6,000 to 8,999 steps a day."
+    )
