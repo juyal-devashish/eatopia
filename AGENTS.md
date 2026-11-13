@@ -8,7 +8,9 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 ## Commands
 
 - `make check`: everything CI runs (backend ruff, mypy, pytest; web lint and typecheck). Run it before every commit.
-- `make backend-dev`: API on http://localhost:8000.
+- `make backend-dev`: API on http://localhost:8000. `make migrate` applies database migrations.
+- Backend tests need Postgres: a local `intake_test` database (`createdb intake_test`), or `TEST_DATABASE_URL`.
+  The dev server uses `intake` (`DATABASE_URL`).
 - `make web-dev`: web app on http://localhost:3000.
 
 ## Rules for this repo
@@ -25,5 +27,6 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 
 ## Git
 
-- Work on `feat/health-prefill`; one commit per milestone step, with `make check` passing.
+- One branch per milestone (`feat/m2-rules`, ...), merged to `main` by pull request once CI passes; one commit per
+  step, with `make check` passing.
 - **Ask before pushing.** Pushing publishes to a public repo.

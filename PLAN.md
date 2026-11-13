@@ -43,7 +43,7 @@ Sprout v1 fed HealthKit and CGM signals into an agent. That breaks rule 1, and H
 
 | Gap | Evidence |
 |---|---|
-| **MCP** | Named in the job post; nothing on the site or the App Store listing |
+| **MCP** | Named in the job post; nothing on the site or the App Store listing. *Outdated (2026-11-13): Sage already uses 6 read-only tools over member data, so tool use is not a gap.* |
 | **Citation checking at display time** | Privacy policy: *"We do not independently verify every citation at the moment it is shown"* |
 | **Making device data useful to the dietitian** | Glucose is kept "for your dietitian to review" so "your clinician put[s] that in context". Nothing describes analysis that does this for them; the job post asks to "turn health data into practical, personalized guidance" |
 | **Garmin, Fitbit, Google Fit** | "We do not connect to Garmin, Fitbit or Google Fit today… so we can plan for future support" |
