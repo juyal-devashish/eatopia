@@ -2,8 +2,8 @@
 
 Status: **built (M0–M9).** Since then, [plan-voice-intake.md](plan-voice-intake.md) changed what a visitor sees:
 one scenario (member A, Health first), the two estimates moved onto the Health card, and voice screens fill the
-remaining questions. The sections below describe the original two-order demo. The Health MCP server is deferred (see "Later"). Everything is
-built in Eatopia's own stack. `PLAN.md` holds the earlier research and the privacy rules this plan depends on.
+remaining questions. The sections below describe the original two-order demo. The Health MCP server is deferred
+(see "Later"). Everything is built in Eatopia's own stack.
 
 ## The pitch
 
@@ -68,7 +68,7 @@ uses a typical intake for them (marked *assumed* below). No personal values are 
 7 of 23 questions can be suggested from Health, all from the 13 questions we saw. Their permission sheet asks for steps, workouts, weight and sleep;
 prefilling also needs height, date of birth and biological sex, which are separate HealthKit read types.
 
-## Rules we keep (theirs, from `PLAN.md`)
+## Rules we keep (theirs, from Eatopia's published privacy policy)
 
 1. Device data never goes to the language model, enforced by a test.
 2. Glucose is not shown to the member and never changes anything automatically. (Out of scope here.)

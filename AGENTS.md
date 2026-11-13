@@ -1,9 +1,9 @@
 # AGENTS.md: Health-first onboarding demo
 
-A mobile-first web app that shows an easier onboarding: answers Apple Health can give are suggested and the
-member confirms them. Built in Eatopia's stack: Next.js (App Router) in `web/`, FastAPI in `backend/`, Postgres,
-deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-prefill.md); read it first.
-`PLAN.md` holds the earlier research and Eatopia's privacy rules.
+A mobile-first web app that shows an easier onboarding: Apple Health fills what it can, the member says the rest,
+and they confirm every answer. Built in Eatopia's stack: Next.js (App Router) in `web/`, FastAPI in `backend/`,
+Postgres, deployed on Railway and Vercel. Read [docs/plan-voice-intake.md](docs/plan-voice-intake.md) (what the demo
+is now) and [docs/plan-health-prefill.md](docs/plan-health-prefill.md) (architecture and the privacy rules) first.
 
 ## Commands
 
