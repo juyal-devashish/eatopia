@@ -1,7 +1,7 @@
-# Plan: Health-prefilled onboarding (v6)
+# Plan: Health-prefilled onboarding (v7)
 
-Status: **draft for discussion, not final.** The Health MCP server is deferred (see "Later"). Everything is built in
-Eatopia's own stack. `PLAN.md` holds the earlier research and the privacy rules this plan depends on.
+Status: **agreed; being built milestone by milestone.** The Health MCP server is deferred (see "Later"). Everything is
+built in Eatopia's own stack. `PLAN.md` holds the earlier research and the privacy rules this plan depends on.
 
 ## The pitch
 
@@ -11,6 +11,9 @@ real run: every answer was tapped by hand). This demo moves the permission to th
 prefills those seven answers as **suggestions the member confirms**, and uses Claude only where free text helps
 (matching a condition, mapping "Something else"). No Health value ever reaches the model, which keeps their own rule.
 
+It follows the same principle as their meal-logging pipeline, where unmatched foods are "excluded, not estimated":
+a Health answer comes from data or the question is asked; it is never guessed.
+
 It ships as **a web app shaped like a phone**: one link, nothing to install, works on a laptop or a phone.
 
 ## Their stack, and what we use from it
@@ -18,10 +21,11 @@ It ships as **a web app shaped like a phone**: one link, nothing to install, wor
 | Layer | Theirs (source) | In this demo |
 |---|---|---|
 | Web app | Next.js App Router on Railway (eatopia.ai and app.eatopia.ai, checked 2026-11-13) | Next.js App Router, TypeScript strict, on Railway |
-| Backend | FastAPI + Postgres on Railway (privacy policy, Hongkun's profile) | FastAPI + Postgres on Railway |
-| AI | Claude via the Anthropic API (privacy policy) | Anthropic Python SDK, one backend module |
+| Backend | FastAPI + Postgres on Railway (privacy policy, technical cofounder's profile) | FastAPI + Postgres on Railway |
+| AI | Claude via the Anthropic API; Sage answers from member data through 6 read-only tools (profile) | Anthropic Python SDK, one backend module |
 | Errors | Sentry (privacy policy) | Sentry on web and backend |
-| iPhone app | Native iOS with HealthKit | Not built. The web app simulates it; the iPhone's part is one documented request (see "The HealthKit contract") |
+| iPhone app | SwiftUI with HealthKit (profile) | Not built. The web app simulates it; the iPhone's part is one documented request (see "The HealthKit contract") |
+| Dietitian console | Registered-dietitian console (profile) | A dietitian view page |
 | Not needed | Stripe, IAP, Resend, Twilio | Not used |
 
 Open: their ORM, migration tool and CSS approach. Defaults: SQLAlchemy 2 + Alembic, Tailwind. Switch if we learn otherwise.
@@ -157,7 +161,7 @@ fixed clock.
 
 ### Backend (FastAPI)
 
-- **Endpoints:** `POST /sessions`, `GET /sessions/{id}/form`, `POST /sessions/{id}/health-summary`,
+- **Endpoints:** `POST /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/form`, `POST /sessions/{id}/health-summary`,
   `POST /sessions/{id}/answers`, `POST /sessions/{id}/conditions/match`, `POST /sessions/{id}/complete`,
   `GET /sessions/{id}/record`, `GET /sessions/{id}/egress`.
 - **Tables:** `intake_session` (member, mode, started and finished times, tap count); `health_summary` (every field
@@ -166,6 +170,21 @@ fixed clock.
 - **Question schema:** one JSON file (sections, questions, option ids, which rule can answer each, and where the
   Health permission sits in each mode). The web app renders whatever `/form` returns.
 - Sessions are anonymous and deleted after 24 hours.
+
+### Reliability (lessons from their production)
+
+Their technical cofounder fixed phones losing replies the server had already generated, and model calls blocking
+other members. The demo handles both from the start:
+
+- **Answers are saved once.** One row per session and question, written with a client-generated key; a retried
+  request updates the same row and never duplicates it.
+- **Model calls are keyed.** Condition matching stores its result under the request's key; a retry returns the stored
+  result and makes no second paid call.
+- **Sessions resume.** `GET /sessions/{id}` returns the answers so far and the next screen, so a reloaded page picks
+  up where it left off.
+- **Model calls don't block.** `claude_client` uses the async Anthropic client with a timeout.
+- Tests: a duplicate answer gives one row; a retried match gives one `llm_call`; a resumed session lands on the right
+  screen.
 
 ### Mapping rules (plain code, thresholds in config)
 
@@ -205,7 +224,7 @@ hit, matching falls back to the full condition list and the summary to a templat
 
 - `claude_client` only accepts `MemberText` and `CatalogRef`. No function in it takes a `HealthSummary`, so passing
   one is a type error (mypy runs in `make check`).
-- **Canary test:** each synthetic member has unique marker values (for example 73.417 kg, 4,812 steps). A fake
+- **Canary test:** each synthetic member has unique marker values (for example 73.417 kg, 1.6834 m). A fake
   Anthropic client records every request; the test fails if any marker appears.
 - The "What the model saw" panel and the dietitian view read straight from the `llm_call` log.
 
@@ -250,7 +269,10 @@ eatopia/
   edit; the canary test; catalog-id validation; caps and fallbacks; failed model calls recorded.
 - Web: component tests for each screen kind; one Playwright run per member and mode against a local backend with
   the fake Claude client.
-- One small live check of condition matching, about 10 real calls, run only with your OK.
+- **Condition-matching eval**, reported the way they report food matching ("81% of 679 foods matched"): about 50
+  synthetic phrasings, each with its expected condition or "no match". We report how often the right condition is
+  in the top 3, how often a suggestion is wrong, and how often "no match" is correctly returned. About 50 real calls,
+  run only with your OK.
 
 ## Milestones (one commit each)
 
@@ -258,14 +280,14 @@ eatopia/
 |---|---|---|
 | M0 | Repo setup: `AGENTS.md`, backend and web skeletons, `make check`, GitHub Actions | `make check` passes in CI |
 | M1 | Question schema and synthetic HealthKit fixtures | schema served from `/form` |
-| M2 | Summary builder, mapping rules, database tables | rule tests pass for A, B and C |
+| M2 | Summary builder, mapping rules, database tables, idempotent and resumable sessions | rule and retry tests pass for A, B and C |
 | M3 | `claude_client`, egress log, canary test, cost caps | canary test passes with a fake client |
 | M4 | Web: start screen, phone frame, "Today's order" end to end | Playwright run passes for all members |
 | M5 | Web: "Health first" with benefit screen, permission sheet, review card, estimate hints, Behind the scenes panel | Playwright and axe runs pass for all members |
-| M6 | Condition matching and "Something else" | live check passes (≈10 calls) |
+| M6 | Condition matching and "Something else" | eval run and reported (≈50 calls, with your OK) |
 | M7 | Finish screen comparison and dietitian view | both render for all members |
 | M8 | Deploy to Railway (web, API, Postgres) with Sentry | full flow works on the public link, on laptop and phone |
-| M9 | Measure and record | timings, a 60–90 second video, and the note |
+| M9 | Measure and record | timings, a 60–90 second video, a README a reviewer can read in five minutes (the link, the one HealthKit request, the firewall test), and the note |
 
 Rough size: 5–7 focused days. M5 (the suggestion screens and live panel) carries the most risk.
 
@@ -289,8 +311,9 @@ measure, never "15 minutes to 3".
 
 ## Later (not in this build)
 
-- **Health MCP server:** wraps the same backend services (summary, rules, coverage) so Sage or the dietitian console
-  can use them. The backend keeps those as plain service functions so the server can sit on top.
+- **Health MCP server:** Sage already answers from member data through 6 read-only tools, so an MCP server would
+  expose tools like these in a standard format rather than add a capability. It is not part of the pitch. The backend
+  keeps the summary and rules as plain service functions in case it is wanted later.
 - A SwiftUI client that sends `HealthSummaryV1` from real HealthKit.
 - Uploading a real Apple Health export.
 - Clinical records (medications, labs, conditions).

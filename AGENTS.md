@@ -25,5 +25,6 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 
 ## Git
 
-- Work on `feat/health-prefill`; one commit per milestone step, with `make check` passing.
+- One branch per milestone (`feat/m2-rules`, ...), merged to `main` by pull request once CI passes; one commit per
+  step, with `make check` passing.
 - **Ask before pushing.** Pushing publishes to a public repo.
