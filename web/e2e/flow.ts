@@ -1,9 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 
-export async function startOnboarding(page: Page, member: "A" | "B" | "C", order: "Today's order" | "Health first") {
+/** Start the demo's one scenario: synthetic member A, Apple Health first. */
+export async function startOnboarding(page: Page) {
   await page.goto("/");
-  await page.getByRole("radio", { name: new RegExp(`^${member}:`) }).check();
-  await page.getByRole("radio", { name: new RegExp(order) }).check();
   await page.getByRole("button", { name: "Start onboarding" }).click();
   await expect(page.locator("[data-screen-id]")).toBeVisible();
 }
@@ -58,4 +57,8 @@ export async function runToFinish(page: Page): Promise<string[]> {
     if (visited.length > 40) throw new Error("flow did not finish");
   }
   return visited;
+}
+
+export async function answerUntil(page: Page, screenId: string) {
+  while ((await currentScreen(page)).id !== screenId) await answerCurrent(page);
 }

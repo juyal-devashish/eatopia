@@ -1,13 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { answerCurrent, currentScreen, runToFinish, startOnboarding } from "./flow";
+import { answerCurrent, answerUntil, currentScreen, runToFinish, startOnboarding } from "./flow";
 
 const FACTS = ["sex_at_birth", "date_of_birth", "height", "weight", "steps"];
-
-async function answerUntil(page: Page, screenId: string) {
-  while ((await currentScreen(page)).id !== screenId) await answerCurrent(page);
-}
 
 async function expectAccessible(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -15,7 +11,7 @@ async function expectAccessible(page: Page) {
 }
 
 test("member A reviews five facts on one card and skips those questions", async ({ page }) => {
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "health_review");
 
   await expect(page.locator("[data-row]")).toHaveCount(5);
@@ -25,11 +21,11 @@ test("member A reviews five facts on one card and skips those questions", async 
   const visited = ["health_review", ...(await runToFinish(page))];
 
   expect(visited.filter((id) => FACTS.includes(id))).toEqual([]);
-  await expect(page.getByTestId("screens-seen")).toHaveText("22");
+  await expect(page.getByTestId("run-Screens")).toHaveText("22");
 });
 
 test("estimates are highlighted, never preselected", async ({ page }) => {
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "exercise_frequency");
 
   const suggested = page.getByRole("radio", { name: /5 to 6 days/ });
@@ -39,26 +35,8 @@ test("estimates are highlighted, never preselected", async ({ page }) => {
   await expectAccessible(page);
 });
 
-test("member B reviews only usable facts and is asked the rest", async ({ page }) => {
-  await startOnboarding(page, "B", "Health first");
-  await answerUntil(page, "health_review");
-
-  await expect(page.locator("[data-row]")).toHaveCount(3);
-  await answerCurrent(page);
-  await answerUntil(page, "weight");
-  await expect(page.getByText(/couldn't answer this. Latest weight in Apple Health is 120 days old/)).toBeVisible();
-});
-
-test("member C has nothing to review", async ({ page }) => {
-  await startOnboarding(page, "C", "Health first");
-  const visited = await runToFinish(page);
-
-  expect(visited).not.toContain("health_review");
-  expect(visited).toEqual(expect.arrayContaining(FACTS));
-});
-
 test("denying access asks every question", async ({ page }) => {
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "health_permission_early");
   await page.getByRole("button", { name: "Don't allow" }).click();
 
@@ -78,7 +56,7 @@ test("a row with weak data needs its own tap before Confirm", async ({ page }) =
     }
     await route.fulfill({ response, json: body });
   });
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "health_review");
 
   const confirm = page.getByRole("button", { name: "Check the highlighted answer" });
@@ -89,7 +67,7 @@ test("a row with weak data needs its own tap before Confirm", async ({ page }) =
 
 test("changing a row records it as changed", async ({ page, isMobile }) => {
   test.skip(isMobile, "the panel is beside the app on wide screens");
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "health_review");
 
   await page.getByRole("button", { name: "Change Daily steps" }).click();
@@ -105,7 +83,7 @@ test("changing a row records it as changed", async ({ page, isMobile }) => {
 
 test("the panel opens from Details on a phone", async ({ page, isMobile }) => {
   test.skip(!isMobile, "phones show the panel behind a button");
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "health_review");
 
   await page.getByRole("button", { name: "Details" }).click();

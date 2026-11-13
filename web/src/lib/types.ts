@@ -51,6 +51,8 @@ export interface Form {
   mode: Mode;
   sections: Section[];
   screens: Screen[];
+  /** The same questions asked one per screen: screens, and the fewest taps they could take. */
+  baseline: { screens: number; min_taps: number };
 }
 
 export interface MemberSummary {

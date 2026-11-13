@@ -1,16 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { answerCurrent, currentScreen, startOnboarding } from "./flow";
+import { answerUntil, currentScreen, startOnboarding } from "./flow";
 
 // The end-to-end API runs with LLM_TRANSPORT=offline: a keyword matcher stands in for Claude.
 
-async function answerUntil(page: Page, screenId: string) {
-  while ((await currentScreen(page)).id !== screenId) await answerCurrent(page);
-}
-
 test("a concern in the member's own words gives matches to pick from", async ({ page }) => {
-  await startOnboarding(page, "A", "Today's order");
+  await startOnboarding(page);
   await answerUntil(page, "health_concern");
 
   await page.getByLabel("In your own words").fill("my kidney stones came back");
@@ -27,7 +23,7 @@ test("a concern in the member's own words gives matches to pick from", async ({ 
 });
 
 test("no match falls back to the full list", async ({ page }) => {
-  await startOnboarding(page, "B", "Today's order");
+  await startOnboarding(page);
   await answerUntil(page, "health_concern");
 
   await page.getByLabel("In your own words").fill("my left knee aches");
@@ -38,7 +34,7 @@ test("no match falls back to the full list", async ({ page }) => {
 });
 
 test("a Something else answer can be swapped for a matching option", async ({ page }) => {
-  await startOnboarding(page, "C", "Today's order");
+  await startOnboarding(page);
   await answerUntil(page, "allergies");
 
   await page.getByRole("checkbox", { name: "Something else" }).check();
@@ -52,7 +48,7 @@ test("a Something else answer can be swapped for a matching option", async ({ pa
 
 test("the model call appears in Behind the scenes", async ({ page, isMobile }) => {
   test.skip(isMobile, "the panel is beside the app on wide screens");
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await answerUntil(page, "health_concern");
 
   await page.getByLabel("In your own words").fill("heartburn after dinner, acid reflux");

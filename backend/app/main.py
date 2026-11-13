@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.answers import InvalidAnswer
+from app.baseline import Baseline, one_per_screen
 from app.catalog import ConditionCatalog, load_catalog
 from app.claude_client import (
     AnthropicTransport,
@@ -75,6 +76,7 @@ class FormResponse(BaseModel):
     mode: Mode
     sections: tuple[Section, ...]
     screens: tuple[Screen, ...]
+    baseline: Baseline  # the same questions asked one per screen, for comparison
 
 
 class MemberSummary(BaseModel):
@@ -182,7 +184,13 @@ def create_app() -> FastAPI:
     @app.get("/form")
     def form(mode: Mode) -> FormResponse:
         schema = load_schema()
-        return FormResponse(version=schema.version, mode=mode, sections=schema.sections, screens=schema.for_mode(mode))
+        return FormResponse(
+            version=schema.version,
+            mode=mode,
+            sections=schema.sections,
+            screens=schema.for_mode(mode),
+            baseline=one_per_screen(schema),
+        )
 
     @app.get("/catalog/conditions")
     def conditions() -> ConditionCatalog:
