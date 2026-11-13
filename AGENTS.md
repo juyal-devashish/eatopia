@@ -1,6 +1,6 @@
 # AGENTS.md: Health-first onboarding demo
 
-A web app, shaped like a phone, that shows an easier onboarding: answers Apple Health can give are suggested and the
+A mobile-first web app that shows an easier onboarding: answers Apple Health can give are suggested and the
 member confirms them. Built in Eatopia's stack: Next.js (App Router) in `web/`, FastAPI in `backend/`, Postgres,
 deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-prefill.md); read it first.
 `PLAN.md` holds the earlier research and Eatopia's privacy rules.

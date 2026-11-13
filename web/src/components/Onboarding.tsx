@@ -158,7 +158,7 @@ export function Onboarding({ sessionId, startedAt, onExit }: Props) {
             {section?.assumed ? " · illustrative" : ""}
           </p>
         </div>
-        <button type="button" onClick={onExit} className="min-h-11 px-1 text-sm font-semibold text-accent min-[500px]:hidden">
+        <button type="button" onClick={onExit} className="min-h-11 px-1 text-sm font-semibold text-accent">
           Exit
         </button>
       </div>
