@@ -25,7 +25,7 @@ function toItem(option: Option, picked: Picked): unknown {
   return option.free_text ? { option: option.id, text: picked[option.id].trim() } : option.id;
 }
 
-export function ChoiceScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
+export function ChoiceScreen({ screen, initial, onSubmit, busy, suggestion, actionLabel }: ScreenProps) {
   const multi = screen.kind === "multi_choice";
   const [picked, setPicked] = useState<Picked>(() => fromValue(initial));
   const headingId = `${screen.id}-heading`;
@@ -45,6 +45,8 @@ export function ChoiceScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
     });
   }
 
+  // An estimate is highlighted, never selected: the member taps to choose it.
+  const hinted = suggestion && suggestion.kind === "estimate" && suggestion.status !== "ask" ? suggestion.value : null;
   const chosen = screen.options.filter((o) => o.id in picked);
   const missingText = chosen.some((o) => o.free_text && !picked[o.id].trim());
   const ready = chosen.length > 0 && !missingText;
@@ -68,6 +70,11 @@ export function ChoiceScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
               checked={option.id in picked}
               onChange={() => toggle(option)}
               label={option.label}
+              hint={
+                hinted === option.id ? (
+                  <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">Suggested</span>
+                ) : undefined
+              }
             />
             {option.free_text && option.id in picked ? (
               <input
@@ -84,7 +91,7 @@ export function ChoiceScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
       </fieldset>
       <ScreenActions>
         <PrimaryButton disabled={!ready || busy} onClick={submit}>
-          Continue
+          {actionLabel ?? "Continue"}
         </PrimaryButton>
       </ScreenActions>
     </>

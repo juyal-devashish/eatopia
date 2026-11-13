@@ -1,4 +1,4 @@
-import type { AnswerValue, Condition, Form, MemberSummary, Mode, SessionState } from "./types";
+import type { AnswerValue, Condition, EgressEntry, Form, MemberSummary, Mode, SessionState } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -53,6 +53,7 @@ export const api = {
       body: JSON.stringify({ member_id: memberId, mode, client_key: clientKey }),
     }),
   session: (id: string) => request<SessionState>(`/sessions/${id}`),
+  egress: (id: string) => request<EgressEntry[]>(`/sessions/${id}/egress`),
   answer: (id: string, screenId: string, value: AnswerValue, key: string, taps: number) =>
     request<SessionState>(`/sessions/${id}/answers`, {
       method: "POST",

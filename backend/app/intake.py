@@ -45,6 +45,7 @@ class SessionState(BaseModel):
     answers: dict[str, AnswerOut]
     suggestions: dict[str, RuleResult]
     review_rows: list[str]
+    health_summary: HealthSummaryV1 | None
     tap_count: int
     finished: bool
 
@@ -113,17 +114,19 @@ def connect_simulated_health(db: Session, session: IntakeSession, now: datetime)
     store_health_summary(db, session, build_summary(resolve(member, now), now), now)
 
 
+def _summary(db: Session, session: IntakeSession) -> HealthSummaryV1 | None:
+    """Only Health first uses the summary; today's flow asks everything."""
+    if session.mode != "health_first":
+        return None
+    row = db.get(HealthSummaryRow, session.id)
+    return None if row is None else HealthSummaryV1.model_validate(row.data)
+
+
 def _suggestions(
     db: Session, session: IntakeSession, schema: QuestionSchema, now: datetime, settings: Settings
 ) -> dict[str, RuleResult]:
-    """Only Health first shows suggestions; today's flow asks everything."""
-    if session.mode != "health_first":
-        return {}
-    row = db.get(HealthSummaryRow, session.id)
-    if row is None:
-        return {}
-    summary = HealthSummaryV1.model_validate(row.data)
-    return suggest(schema, summary, now, settings.rules)
+    summary = _summary(db, session)
+    return {} if summary is None else suggest(schema, summary, now, settings.rules)
 
 
 def _review_rows(schema: QuestionSchema, suggestions: dict[str, RuleResult]) -> list[str]:
@@ -166,6 +169,7 @@ def state(
         answers={k: AnswerOut(value=row.value, source=cast(Source, row.source)) for k, row in answers.items()},
         suggestions=suggestions,
         review_rows=review_rows,
+        health_summary=_summary(db, session),
         tap_count=session.tap_count,
         finished=next_screen is None,
     )

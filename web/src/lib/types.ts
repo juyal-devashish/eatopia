@@ -84,6 +84,39 @@ export interface RuleResult {
   observed_at: string | null;
 }
 
+export interface Measurement {
+  value: number;
+  unit: string;
+  at: string;
+  source: string;
+}
+
+/** HealthSummaryV1: the member's own Health data. Shown to them; never sent to the model. */
+export interface HealthSummary {
+  schema_version: number;
+  generated_at: string;
+  read_types_with_data: string[];
+  biological_sex: string | null;
+  date_of_birth: string | null;
+  latest_height: Measurement | null;
+  latest_weight: Measurement | null;
+  workouts_last_28d: number;
+  workouts_recorded: number;
+  daily_steps_30d: { day: string; count: number }[];
+}
+
+export interface EgressEntry {
+  id: number;
+  purpose: string;
+  status: string;
+  model: string;
+  request: { system?: string; messages?: { role: string; content: string }[] } | null;
+  result: Record<string, unknown> | null;
+  error: string | null;
+  latency_ms: number | null;
+  created_at: string;
+}
+
 export interface SessionState {
   id: string;
   member_id: MemberId;
@@ -92,6 +125,7 @@ export interface SessionState {
   answers: Record<string, Answer>;
   suggestions: Record<string, RuleResult>;
   review_rows: string[];
+  health_summary: HealthSummary | null;
   tap_count: number;
   finished: boolean;
 }

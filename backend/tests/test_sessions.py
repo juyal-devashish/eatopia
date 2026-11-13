@@ -304,3 +304,18 @@ def test_withdrawing_access_after_back_forgets_health_data(client: TestClient) -
 
     assert state["suggestions"] == {}
     assert state["review_rows"] == []
+
+
+def test_health_first_state_includes_the_members_own_summary(client: TestClient) -> None:
+    state = _start(client, "a", "health_first")
+    state, _ = _run_to(client, state, stop_at="health_review")
+
+    assert state["health_summary"]["latest_weight"]["value"] == 73.417
+    assert len(state["health_summary"]["daily_steps_30d"]) == 30
+
+
+def test_todays_order_state_has_no_summary(client: TestClient) -> None:
+    state = _start(client, "a", "today")
+    state, _ = _run_to(client, state)
+
+    assert state["health_summary"] is None

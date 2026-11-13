@@ -19,7 +19,7 @@ function stored(value: unknown, key: "cm" | "kg"): number | null {
 }
 
 /** Height or weight, in either unit. The API always receives cm or kg. */
-export function MeasureScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
+export function MeasureScreen({ screen, initial, onSubmit, busy, actionLabel }: ScreenProps) {
   const height = screen.kind === "height";
   const [unit, setUnit] = useState(screen.units[0]);
   const start = stored(initial, height ? "cm" : "kg");
@@ -91,7 +91,7 @@ export function MeasureScreen({ screen, initial, onSubmit, busy }: ScreenProps) 
       )}
       <ScreenActions>
         <PrimaryButton disabled={!result || busy} onClick={() => result && onSubmit(result)}>
-          Continue
+          {actionLabel ?? "Continue"}
         </PrimaryButton>
         {screen.optional ? (
           <SecondaryButton disabled={busy} onClick={() => onSubmit(null)}>
