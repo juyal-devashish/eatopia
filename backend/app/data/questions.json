@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "note": "Our own wording. Sections 1-4 follow the order of the flow we reviewed; sections 5-7 are an assumed, typical intake.",
+  "sections": [
+    {"id": "goals", "title": "Your goals"},
+    {"id": "about", "title": "About you"},
+    {"id": "routine", "title": "Your routine"},
+    {"id": "health", "title": "Your health"},
+    {"id": "food", "title": "Your food", "assumed": true},
+    {"id": "kitchen", "title": "Your kitchen", "assumed": true},
+    {"id": "final", "title": "Last details", "assumed": true}
+  ],
+  "screens": [
+    {
+      "id": "main_goal", "section": "goals", "kind": "single_choice",
+      "title": "What would you most like to work on first?",
+      "options": [
+        {"id": "condition", "label": "Managing a health condition"},
+        {"id": "feel_better", "label": "Feeling better day to day"},
+        {"id": "digestion", "label": "Better digestion"},
+        {"id": "blood_sugar", "label": "Steadier blood sugar"},
+        {"id": "weight", "label": "My weight"},
+        {"id": "energy", "label": "More energy"},
+        {"id": "regular_meals", "label": "Eating more regularly"},
+        {"id": "relationship", "label": "A calmer relationship with food"},
+        {"id": "performance", "label": "Sports or training performance"},
+        {"id": "other", "label": "Something else", "free_text": true}
+      ]
+    },
+    {
+      "id": "dietitian_note", "section": "goals", "kind": "interstitial",
+      "title": "A registered dietitian reviews your answers",
+      "subtitle": "They use them to build your starting plan, then adjust it as you go."
+    },
+    {
+      "id": "health_benefit", "section": "about", "kind": "health_benefit", "modes": ["health_first"],
+      "title": "Let Apple Health fill in the basics",
+      "subtitle": "Connect Apple Health and we'll fill in up to 5 answers and suggest 2 more. You check each one."
+    },
+    {
+      "id": "health_permission_early", "section": "about", "kind": "health_permission", "modes": ["health_first"],
+      "title": "Simulated: Apple Health",
+      "read_types": [
+        "HKCharacteristicTypeIdentifierBiologicalSex",
+        "HKCharacteristicTypeIdentifierDateOfBirth",
+        "HKQuantityTypeIdentifierHeight",
+        "HKQuantityTypeIdentifierBodyMass",
+        "HKQuantityTypeIdentifierStepCount",
+        "HKWorkoutTypeIdentifier"
+      ]
+    },
+    {
+      "id": "health_review", "section": "about", "kind": "health_review", "modes": ["health_first"],
+      "title": "From Apple Health",
+      "subtitle": "Check each answer. You can change any of them.",
+      "review_rows": ["sex_at_birth", "date_of_birth", "height", "weight", "steps"]
+    },
+    {
+      "id": "gender_identity", "section": "about", "kind": "single_choice",
+      "title": "How do you describe your gender?",
+      "options": [
+        {"id": "woman", "label": "Woman"},
+        {"id": "man", "label": "Man"},
+        {"id": "nonbinary", "label": "Nonbinary"},
+        {"id": "self_describe", "label": "Another way", "free_text": true},
+        {"id": "prefer_not", "label": "Prefer not to say"}
+      ]
+    },
+    {
+      "id": "sex_at_birth", "section": "about", "kind": "single_choice",
+      "title": "What sex were you assigned at birth?",
+      "options": [
+        {"id": "female", "label": "Female"},
+        {"id": "male", "label": "Male"},
+        {"id": "prefer_not", "label": "Prefer not to say"}
+      ],
+      "health": {"kind": "fact", "rule": "sex_at_birth"}
+    },
+    {
+      "id": "date_of_birth", "section": "about", "kind": "date",
+      "title": "What's your date of birth?",
+      "health": {"kind": "fact", "rule": "date_of_birth"}
+    },
+    {
+      "id": "height", "section": "about", "kind": "height",
+      "title": "How tall are you?",
+      "units": ["ft_in", "cm"], "optional": true, "skip_label": "Add this later",
+      "health": {"kind": "fact", "rule": "height_latest"}
+    },
+    {
+      "id": "weight", "section": "about", "kind": "weight",
+      "title": "What do you weigh now?",
+      "units": ["lb", "kg"], "optional": true, "skip_label": "Add this later",
+      "health": {"kind": "fact", "rule": "weight_recent"}
+    },
+    {
+      "id": "weight_goal", "section": "about", "kind": "single_choice",
+      "title": "Is there a weight goal you'd like help with?",
+      "options": [
+        {"id": "lose", "label": "Lose weight"},
+        {"id": "lose_fat_keep_muscle", "label": "Lose fat, keep muscle"},
+        {"id": "build_muscle", "label": "Build muscle"},
+        {"id": "gain", "label": "Gain weight"},
+        {"id": "maintain", "label": "Stay where I am"},
+        {"id": "no_goal", "label": "No weight goal"},
+        {"id": "not_sure", "label": "Not sure yet"}
+      ]
+    },
+    {
+      "id": "exercise_frequency", "section": "about", "kind": "single_choice",
+      "title": "How many days a week do you exercise?",
+      "options": [
+        {"id": "d0", "label": "None"},
+        {"id": "d1_2", "label": "1 to 2 days"},
+        {"id": "d3_4", "label": "3 to 4 days"},
+        {"id": "d5_6", "label": "5 to 6 days"},
+        {"id": "d7", "label": "Every day"},
+        {"id": "varies", "label": "It varies a lot"}
+      ],
+      "health": {"kind": "estimate", "rule": "exercise_per_week"}
+    },
+    {
+      "id": "health_permission_late", "section": "routine", "kind": "health_permission", "modes": ["today"],
+      "title": "Simulated: Apple Health",
+      "read_types": [
+        "HKQuantityTypeIdentifierStepCount",
+        "HKWorkoutTypeIdentifier",
+        "HKQuantityTypeIdentifierBodyMass",
+        "HKCategoryTypeIdentifierSleepAnalysis"
+      ]
+    },
+    {
+      "id": "meals_per_day", "section": "routine", "kind": "single_choice",
+      "title": "How many times do you eat on a usual day?",
+      "subtitle": "Count meals and proper snacks.",
+      "options": [
+        {"id": "one", "label": "Once"},
+        {"id": "two", "label": "Twice"},
+        {"id": "three", "label": "Three times"},
+        {"id": "four_plus", "label": "Four or more"},
+        {"id": "varies", "label": "It varies a lot"}
+      ]
+    },
+    {
+      "id": "activity_level", "section": "routine", "kind": "single_choice",
+      "title": "How active is a typical day for you?",
+      "options": [
+        {"id": "sedentary", "label": "Mostly sitting"},
+        {"id": "light", "label": "Lightly active"},
+        {"id": "moderate", "label": "Moderately active"},
+        {"id": "very", "label": "Very active"},
+        {"id": "varies", "label": "It varies a lot"}
+      ],
+      "health": {"kind": "estimate", "rule": "activity_from_steps"}
+    },
+    {
+      "id": "steps", "section": "routine", "kind": "single_choice",
+      "title": "How many steps do you take on most days?",
+      "options": [
+        {"id": "under_3000", "label": "Under 3,000"},
+        {"id": "s3000_5999", "label": "3,000 to 5,999"},
+        {"id": "s6000_8999", "label": "6,000 to 8,999"},
+        {"id": "s9000_11999", "label": "9,000 to 11,999"},
+        {"id": "s12000_plus", "label": "12,000 or more"},
+        {"id": "not_sure", "label": "Not sure"}
+      ],
+      "health": {"kind": "fact", "rule": "steps_median_30d"}
+    },
+    {
+      "id": "health_concern", "section": "health", "kind": "condition_picker",
+      "title": "Is there one health concern you'd most like help with?",
+      "subtitle": "Describe it in your own words, or pick from the list.",
+      "catalog": "conditions",
+      "options": [
+        {"id": "none", "label": "No specific condition"}
+      ]
+    },
+    {
+      "id": "eating_barriers", "section": "health", "kind": "multi_choice",
+      "title": "What gets in the way of eating well?",
+      "subtitle": "Choose all that apply.",
+      "options": [
+        {"id": "schedule", "label": "My schedule keeps changing"},
+        {"id": "what_to_eat", "label": "I'm not sure what to eat"},
+        {"id": "cooking_time", "label": "Cooking takes too long"},
+        {"id": "eating_out", "label": "Eating out makes it hard"},
+        {"id": "consistency", "label": "Staying consistent"},
+        {"id": "stress", "label": "Food choices feel stressful"},
+        {"id": "support", "label": "I'd like more support"},
+        {"id": "other", "label": "Something else", "free_text": true}
+      ]
+    },
+    {
+      "id": "diet_pattern", "section": "food", "kind": "single_choice",
+      "title": "Which best describes how you eat?",
+      "options": [
+        {"id": "none", "label": "No restrictions"},
+        {"id": "vegetarian", "label": "Vegetarian"},
+        {"id": "vegan", "label": "Vegan"},
+        {"id": "pescatarian", "label": "Pescatarian"},
+        {"id": "halal", "label": "Halal"},
+        {"id": "kosher", "label": "Kosher"},
+        {"id": "other", "label": "Something else", "free_text": true}
+      ]
+    },
+    {
+      "id": "allergies", "section": "food", "kind": "multi_choice",
+      "title": "Any food allergies or intolerances?",
+      "subtitle": "Choose all that apply.",
+      "options": [
+        {"id": "none", "label": "None", "exclusive": true},
+        {"id": "dairy", "label": "Dairy or lactose"},
+        {"id": "gluten", "label": "Gluten"},
+        {"id": "tree_nuts", "label": "Tree nuts"},
+        {"id": "peanuts", "label": "Peanuts"},
+        {"id": "shellfish", "label": "Shellfish"},
+        {"id": "fish", "label": "Fish"},
+        {"id": "eggs", "label": "Eggs"},
+        {"id": "soy", "label": "Soy"},
+        {"id": "sesame", "label": "Sesame"},
+        {"id": "other", "label": "Something else", "free_text": true}
+      ]
+    },
+    {
+      "id": "foods_avoided", "section": "food", "kind": "text",
+      "title": "Any foods you'd rather avoid?",
+      "optional": true, "skip_label": "Skip"
+    },
+    {
+      "id": "cuisines", "section": "food", "kind": "multi_choice",
+      "title": "Which cuisines feel like home?",
+      "subtitle": "Choose all that apply.",
+      "options": [
+        {"id": "south_asian", "label": "South Asian"},
+        {"id": "east_asian", "label": "East Asian"},
+        {"id": "southeast_asian", "label": "Southeast Asian"},
+        {"id": "middle_eastern", "label": "Middle Eastern"},
+        {"id": "mediterranean", "label": "Mediterranean"},
+        {"id": "african", "label": "African"},
+        {"id": "caribbean", "label": "Caribbean"},
+        {"id": "latin_american", "label": "Latin American"},
+        {"id": "north_american", "label": "North American"},
+        {"id": "european", "label": "European"},
+        {"id": "other", "label": "Something else", "free_text": true}
+      ]
+    },
+    {
+      "id": "who_cooks", "section": "kitchen", "kind": "single_choice",
+      "title": "Who does most of the cooking?",
+      "options": [
+        {"id": "me", "label": "Me"},
+        {"id": "someone_else", "label": "Someone else at home"},
+        {"id": "shared", "label": "We share it"},
+        {"id": "takeout", "label": "Mostly takeout or ready meals"}
+      ]
+    },
+    {
+      "id": "weeknight_time", "section": "kitchen", "kind": "single_choice",
+      "title": "How much time do you have for a weeknight dinner?",
+      "options": [
+        {"id": "under_15", "label": "Under 15 minutes"},
+        {"id": "m15_30", "label": "15 to 30 minutes"},
+        {"id": "m30_60", "label": "30 to 60 minutes"},
+        {"id": "over_60", "label": "Over an hour"}
+      ]
+    },
+    {
+      "id": "food_budget", "section": "kitchen", "kind": "single_choice",
+      "title": "How does your weekly food budget feel?",
+      "options": [
+        {"id": "tight", "label": "Tight"},
+        {"id": "comfortable", "label": "Comfortable"},
+        {"id": "flexible", "label": "Flexible"}
+      ]
+    },
+    {
+      "id": "eating_out", "section": "kitchen", "kind": "single_choice",
+      "title": "How often do you eat out or order in?",
+      "options": [
+        {"id": "rarely", "label": "Rarely"},
+        {"id": "w1_2", "label": "1 to 2 times a week"},
+        {"id": "w3_5", "label": "3 to 5 times a week"},
+        {"id": "most_days", "label": "Most days"}
+      ]
+    },
+    {
+      "id": "medications", "section": "final", "kind": "text",
+      "title": "Do you take any medications or supplements?",
+      "subtitle": "List them in any format.",
+      "optional": true, "skip_label": "Add this later"
+    },
+    {
+      "id": "anything_else", "section": "final", "kind": "text",
+      "title": "Anything else your dietitian should know?",
+      "optional": true, "skip_label": "Skip"
+    }
+  ]
+}

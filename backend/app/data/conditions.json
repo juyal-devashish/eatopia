@@ -1,0 +1,205 @@
+{
+  "note": "Synthetic catalog written for this demo. Not Eatopia's list.",
+  "conditions": [
+    {
+      "id": "type_2_diabetes",
+      "label": "Type 2 diabetes",
+      "group": "metabolic"
+    },
+    {
+      "id": "prediabetes",
+      "label": "Prediabetes",
+      "group": "metabolic"
+    },
+    {
+      "id": "type_1_diabetes",
+      "label": "Type 1 diabetes",
+      "group": "metabolic"
+    },
+    {
+      "id": "gestational_diabetes",
+      "label": "Gestational diabetes",
+      "group": "metabolic"
+    },
+    {
+      "id": "insulin_resistance",
+      "label": "Insulin resistance",
+      "group": "metabolic"
+    },
+    {
+      "id": "metabolic_syndrome",
+      "label": "Metabolic syndrome",
+      "group": "metabolic"
+    },
+    {
+      "id": "obesity",
+      "label": "Obesity",
+      "group": "metabolic"
+    },
+    {
+      "id": "fatty_liver_disease",
+      "label": "Fatty liver disease",
+      "group": "metabolic"
+    },
+    {
+      "id": "high_blood_pressure",
+      "label": "High blood pressure",
+      "group": "heart"
+    },
+    {
+      "id": "high_cholesterol",
+      "label": "High cholesterol",
+      "group": "heart"
+    },
+    {
+      "id": "high_triglycerides",
+      "label": "High triglycerides",
+      "group": "heart"
+    },
+    {
+      "id": "heart_disease",
+      "label": "Heart disease",
+      "group": "heart"
+    },
+    {
+      "id": "heart_failure",
+      "label": "Heart failure",
+      "group": "heart"
+    },
+    {
+      "id": "irritable_bowel_syndrome",
+      "label": "Irritable bowel syndrome",
+      "group": "digestive"
+    },
+    {
+      "id": "acid_reflux_or_gerd",
+      "label": "Acid reflux or GERD",
+      "group": "digestive"
+    },
+    {
+      "id": "crohn_s_disease",
+      "label": "Crohn's disease",
+      "group": "digestive"
+    },
+    {
+      "id": "ulcerative_colitis",
+      "label": "Ulcerative colitis",
+      "group": "digestive"
+    },
+    {
+      "id": "celiac_disease",
+      "label": "Celiac disease",
+      "group": "digestive"
+    },
+    {
+      "id": "constipation",
+      "label": "Constipation",
+      "group": "digestive"
+    },
+    {
+      "id": "diverticular_disease",
+      "label": "Diverticular disease",
+      "group": "digestive"
+    },
+    {
+      "id": "gallbladder_problems",
+      "label": "Gallbladder problems",
+      "group": "digestive"
+    },
+    {
+      "id": "chronic_kidney_disease",
+      "label": "Chronic kidney disease",
+      "group": "kidney"
+    },
+    {
+      "id": "kidney_stones",
+      "label": "Kidney stones",
+      "group": "kidney"
+    },
+    {
+      "id": "polycystic_ovary_syndrome",
+      "label": "Polycystic ovary syndrome",
+      "group": "hormonal"
+    },
+    {
+      "id": "hypothyroidism",
+      "label": "Hypothyroidism",
+      "group": "hormonal"
+    },
+    {
+      "id": "hyperthyroidism",
+      "label": "Hyperthyroidism",
+      "group": "hormonal"
+    },
+    {
+      "id": "menopause_symptoms",
+      "label": "Menopause symptoms",
+      "group": "hormonal"
+    },
+    {
+      "id": "pregnancy",
+      "label": "Pregnancy",
+      "group": "hormonal"
+    },
+    {
+      "id": "breastfeeding",
+      "label": "Breastfeeding",
+      "group": "hormonal"
+    },
+    {
+      "id": "binge_eating",
+      "label": "Binge eating",
+      "group": "eating"
+    },
+    {
+      "id": "emotional_eating",
+      "label": "Emotional eating",
+      "group": "eating"
+    },
+    {
+      "id": "eating_disorder_recovery",
+      "label": "Eating disorder recovery",
+      "group": "eating"
+    },
+    {
+      "id": "picky_eating",
+      "label": "Picky eating",
+      "group": "eating"
+    },
+    {
+      "id": "gout",
+      "label": "Gout",
+      "group": "other"
+    },
+    {
+      "id": "anemia",
+      "label": "Anemia",
+      "group": "other"
+    },
+    {
+      "id": "osteoporosis",
+      "label": "Osteoporosis",
+      "group": "other"
+    },
+    {
+      "id": "food_allergies",
+      "label": "Food allergies",
+      "group": "other"
+    },
+    {
+      "id": "migraine",
+      "label": "Migraine",
+      "group": "other"
+    },
+    {
+      "id": "cancer_treatment_or_recovery",
+      "label": "Cancer treatment or recovery",
+      "group": "other"
+    },
+    {
+      "id": "low_energy_or_fatigue",
+      "label": "Low energy or fatigue",
+      "group": "other"
+    }
+  ]
+}
