@@ -1,6 +1,6 @@
 # Plan: one scenario, Health first, then voice (M10)
 
-Status: **agreed 2026-11-13; being built on `feat/m10-voice`.** Builds on [plan-health-prefill.md](plan-health-prefill.md),
+Status: **built 2026-11-13** (steps 1–7; the extraction eval's live run is waiting for an OK). Builds on [plan-health-prefill.md](plan-health-prefill.md),
 whose rules all still hold.
 
 ## Why

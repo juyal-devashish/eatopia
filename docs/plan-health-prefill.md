@@ -1,6 +1,8 @@
 # Plan: Health-prefilled onboarding (v7)
 
-Status: **agreed; being built milestone by milestone.** The Health MCP server is deferred (see "Later"). Everything is
+Status: **built (M0–M9).** Since then, [plan-voice-intake.md](plan-voice-intake.md) changed what a visitor sees:
+one scenario (member A, Health first), the two estimates moved onto the Health card, and voice screens fill the
+remaining questions. The sections below describe the original two-order demo. The Health MCP server is deferred (see "Later"). Everything is
 built in Eatopia's own stack. `PLAN.md` holds the earlier research and the privacy rules this plan depends on.
 
 ## The pitch
