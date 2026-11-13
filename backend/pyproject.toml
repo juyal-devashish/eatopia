@@ -4,8 +4,11 @@ version = "0.1.0"
 description = "Backend for the Health-first onboarding demo. Synthetic data only."
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi",
+    "psycopg[binary]>=3.3.9",
     "pydantic-settings",
+    "sqlalchemy>=2.1.8",
     "uvicorn[standard]",
 ]
 

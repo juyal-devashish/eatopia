@@ -8,7 +8,9 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 ## Commands
 
 - `make check`: everything CI runs (backend ruff, mypy, pytest; web lint and typecheck). Run it before every commit.
-- `make backend-dev`: API on http://localhost:8000.
+- `make backend-dev`: API on http://localhost:8000. `make migrate` applies database migrations.
+- Backend tests need Postgres: a local `intake_test` database (`createdb intake_test`), or `TEST_DATABASE_URL`.
+  The dev server uses `intake` (`DATABASE_URL`).
 - `make web-dev`: web app on http://localhost:3000.
 
 ## Rules for this repo

@@ -140,7 +140,7 @@ start screen ─ pick member, mode ────────▶ POST /sessions
                                              └▶ summary builder (stands in for the iPhone)
                                                  └▶ health_summary (device class)
                                            mapping rules ─▶ suggestions
-phone frame screens ◀───────────────────── GET /sessions/{id}/form
+phone frame screens ◀───────────────────── GET /form, GET /sessions/{id}
 taps, confirms, edits ───────────────────▶ POST /sessions/{id}/answers
 condition free text ─────────────────────▶ POST /sessions/{id}/conditions/match ─▶ claude_client ─▶ Claude
                                                                                 (member text + catalog only)
@@ -161,12 +161,13 @@ fixed clock.
 
 ### Backend (FastAPI)
 
-- **Endpoints:** `POST /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/form`, `POST /sessions/{id}/health-summary`,
+- **Endpoints:** `GET /form?mode=`, `POST /sessions`, `GET /sessions/{id}` (state, suggestions, next screen),
+  `POST /sessions/{id}/health-summary`,
   `POST /sessions/{id}/answers`, `POST /sessions/{id}/conditions/match`, `POST /sessions/{id}/complete`,
   `GET /sessions/{id}/record`, `GET /sessions/{id}/egress`.
 - **Tables:** `intake_session` (member, mode, started and finished times, tap count); `health_summary` (every field
   tagged `device`); `intake_answer` (value, source, provenance, rule id and version, confirmed_at);
-  `condition_catalog`; `llm_call` (exact request and response, status: ok, refused, timeout, parse_failed).
+  `llm_call` (exact request and response, status: ok, refused, timeout, parse_failed).
 - **Question schema:** one JSON file (sections, questions, option ids, which rule can answer each, and where the
   Health permission sits in each mode). The web app renders whatever `/form` returns.
 - Sessions are anonymous and deleted after 24 hours.

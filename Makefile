@@ -1,4 +1,4 @@
-.PHONY: check backend-check web-check backend-dev web-dev
+.PHONY: check backend-check web-check backend-dev web-dev migrate
 
 check: backend-check web-check
 
@@ -10,6 +10,9 @@ web-check:
 
 backend-dev:
 	cd backend && uv run uvicorn app.main:app --reload --port 8000
+
+migrate:
+	cd backend && uv run alembic upgrade head
 
 web-dev:
 	cd web && npm run dev
