@@ -1,4 +1,4 @@
-.PHONY: check backend-check web-check backend-dev web-dev migrate
+.PHONY: check backend-check web-check backend-dev web-dev migrate e2e
 
 check: backend-check web-check
 
@@ -13,6 +13,9 @@ backend-dev:
 
 migrate:
 	cd backend && uv run alembic upgrade head
+
+e2e:
+	cd web && npx playwright test
 
 web-dev:
 	cd web && npm run dev

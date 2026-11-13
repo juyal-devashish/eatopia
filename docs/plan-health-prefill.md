@@ -14,7 +14,8 @@ prefills those seven answers as **suggestions the member confirms**, and uses Cl
 It follows the same principle as their meal-logging pipeline, where unmatched foods are "excluded, not estimated":
 a Health answer comes from data or the question is asked; it is never guessed.
 
-It ships as **a web app shaped like a phone**: one link, nothing to install, works on a laptop or a phone.
+It ships as **a mobile-first web app**: one link, nothing to install. It is built for phones; on a laptop it keeps a
+phone's width and proportions in the middle of the page, with no device frame.
 
 ## Their stack, and what we use from it
 
@@ -99,13 +100,14 @@ taps, never auto-selected. Free text is used only for open answers; closed quest
 
 ## What a visitor sees
 
-**Desktop:** a phone frame in the middle of the page and a "Behind the scenes" panel beside it.
-**Phone:** the frame drops away and the onboarding fills the screen; the panel moves behind a button.
+**Phone:** the app fills the screen. **Laptop:** the same app in a phone-width column (430 × 932 at most) in the
+middle of the page, with no device frame; the "Behind the scenes" panel sits beside it there, and behind a button
+on a phone.
 
-1. **Start screen** (outside the phone): pick a synthetic member (A, B or C) and a mode:
+1. **Start screen** (the app's first screen): pick a synthetic member (A, B or C) and a mode:
    - **Today's order:** the current flow, Health permission in section 3, every question asked.
    - **Health first:** the new flow.
-2. **Inside the phone:** one question per screen with tap-to-answer options and a progress bar, like a real app.
+2. **Onboarding:** one question per screen with tap-to-answer options and a progress bar, like a real app.
 3. **Health first mode:**
    - Before "About you", a benefit screen (*"Connect Apple Health and we'll fill in up to 5 answers and suggest 2 more"*), then a
      simulated permission sheet marked "Simulated: Apple Health".
@@ -140,7 +142,7 @@ start screen ─ pick member, mode ────────▶ POST /sessions
                                              └▶ summary builder (stands in for the iPhone)
                                                  └▶ health_summary (device class)
                                            mapping rules ─▶ suggestions
-phone frame screens ◀───────────────────── GET /form, GET /sessions/{id}
+onboarding screens ◀────────────────────── GET /form, GET /sessions/{id}
 taps, confirms, edits ───────────────────▶ POST /sessions/{id}/answers
 condition free text ─────────────────────▶ POST /sessions/{id}/conditions/match ─▶ claude_client ─▶ Claude
                                                                                 (member text + catalog only)
@@ -231,9 +233,10 @@ hit, matching falls back to the full condition list and the summary to a templat
 
 ### Web app (Next.js)
 
-- App Router, TypeScript strict, server components for the start screen and dietitian view, client components inside
-  the phone frame.
-- `PhoneFrame` (about 390 × 844, our own design) wraps the onboarding; below about 500 px wide it renders full screen.
+- App Router, TypeScript strict. Screens are client components that load data from the API directly, which keeps
+  them clear of Next 16's Cache Components rules; the page itself is a thin server component.
+- `AppShell` fills a phone's screen (respecting the safe areas); on wider screens it keeps a phone's width and
+  proportions, up to 430 × 932, centred, with no device frame.
 - Screens are generated from the question schema: single choice, multiple choice, wheel-style date and number
   pickers, interstitial cards, the benefit screen, the permission sheet and the Health review card. One component
   per kind.
@@ -283,7 +286,7 @@ eatopia/
 | M1 | Question schema and synthetic HealthKit fixtures | schema served from `/form` |
 | M2 | Summary builder, mapping rules, database tables, idempotent and resumable sessions | rule and retry tests pass for A, B and C |
 | M3 | `claude_client`, egress log, canary test, cost caps, and the condition-match endpoint (its first user) | canary test passes with a fake client |
-| M4 | Web: start screen, phone frame, "Today's order" end to end | Playwright run passes for all members |
+| M4 | Web: start screen, mobile-first app shell, "Today's order" end to end | Playwright run passes for all members |
 | M5 | Web: "Health first" with benefit screen, permission sheet, review card, estimate hints, Behind the scenes panel | Playwright and axe runs pass for all members |
 | M6 | "Something else" mapping and the condition-match eval | eval run and reported (≈50 calls, with your OK) |
 | M7 | Finish screen comparison and dietitian view | both render for all members |
