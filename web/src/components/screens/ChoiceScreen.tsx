@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-import type { Option } from "@/lib/types";
+import type { MatchResult, Option } from "@/lib/types";
 
 import { OptionRow, PrimaryButton, ScreenActions, ScreenHeading } from "../ui";
+import { MatchBox } from "./MatchBox";
 import type { ScreenProps } from "./types";
 
 type Picked = Record<string, string>; // option id -> free text ("" for ordinary options)
@@ -25,9 +26,10 @@ function toItem(option: Option, picked: Picked): unknown {
   return option.free_text ? { option: option.id, text: picked[option.id].trim() } : option.id;
 }
 
-export function ChoiceScreen({ screen, initial, onSubmit, busy, suggestion, actionLabel }: ScreenProps) {
+export function ChoiceScreen({ screen, initial, onSubmit, busy, suggestion, actionLabel, onMatch }: ScreenProps) {
   const multi = screen.kind === "multi_choice";
   const [picked, setPicked] = useState<Picked>(() => fromValue(initial));
+  const [mapped, setMapped] = useState<MatchResult | null>(null);
   const headingId = `${screen.id}-heading`;
 
   function toggle(option: Option) {
@@ -50,6 +52,18 @@ export function ChoiceScreen({ screen, initial, onSubmit, busy, suggestion, acti
   const chosen = screen.options.filter((o) => o.id in picked);
   const missingText = chosen.some((o) => o.free_text && !picked[o.id].trim());
   const ready = chosen.length > 0 && !missingText;
+
+  /** Use a listed option the member's own words matched, in place of "Something else". */
+  function takeMatch(optionId: string, freeTextId: string) {
+    setPicked((current) => {
+      const next = multi ? { ...current } : {};
+      delete next[freeTextId];
+      for (const other of screen.options) if (other.exclusive) delete next[other.id];
+      next[optionId] = "";
+      return next;
+    });
+    setMapped(null);
+  }
 
   function submit() {
     const items = chosen.map((o) => toItem(o, picked));
@@ -76,7 +90,39 @@ export function ChoiceScreen({ screen, initial, onSubmit, busy, suggestion, acti
                 ) : undefined
               }
             />
-            {option.free_text && option.id in picked ? (
+            {option.free_text && option.id in picked && onMatch ? (
+              <div className="flex flex-col gap-2 rounded-2xl bg-page p-3">
+                <MatchBox
+                  label={`${option.label}: tell us more`}
+                  placeholder="In your own words"
+                  buttonLabel="Check the list for a match"
+                  initialText={picked[option.id]}
+                  onMatch={onMatch}
+                  onResult={setMapped}
+                  onTextChange={(text) => setPicked((p) => ({ ...p, [option.id]: text }))}
+                />
+                {mapped && mapped.matches.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {mapped.matches.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => takeMatch(m.id, option.id)}
+                        className="min-h-11 rounded-xl bg-surface px-3 text-sm font-semibold text-accent ring-1 ring-line"
+                      >
+                        Use “{m.label}”
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {mapped && mapped.matches.length === 0 ? (
+                  <p role="status" className="text-sm text-muted">
+                    No close option. We&apos;ll keep your words.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {option.free_text && option.id in picked && !onMatch ? (
               <input
                 aria-label={`${option.label}: tell us more`}
                 value={picked[option.id]}

@@ -1,4 +1,4 @@
-import type { AnswerValue, RuleResult, Screen } from "@/lib/types";
+import type { AnswerValue, MatchResult, RuleResult, Screen } from "@/lib/types";
 
 export interface ScreenProps {
   screen: Screen;
@@ -10,4 +10,6 @@ export interface ScreenProps {
   suggestion?: RuleResult;
   /** Label for the main button; the review card's editors say "Use this". */
   actionLabel?: string;
+  /** Asks the model to match the member's own words to this screen's options (or the condition list). */
+  onMatch?: (text: string) => Promise<MatchResult>;
 }

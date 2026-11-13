@@ -24,6 +24,8 @@ export default defineConfig({
         ...process.env,
         DATABASE_URL: process.env.E2E_DATABASE_URL ?? "postgresql+psycopg:///intake_e2e",
         ALLOWED_ORIGINS: `["http://localhost:${WEB_PORT}"]`,
+        // Never call a paid API from tests: a keyword matcher answers in Claude's place.
+        LLM_TRANSPORT: "offline",
       },
       timeout: 120_000,
     },

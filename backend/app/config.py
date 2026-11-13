@@ -1,6 +1,7 @@
 """Settings read from the environment. Names are listed in backend/.env.example."""
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
     # Read from ANTHROPIC_API_KEY (environment or backend/.env). When unset, the SDK falls back to an
     # `ant auth login` profile.
     anthropic_api_key: SecretStr | None = None
+    # "offline" swaps Claude for a keyword matcher (end-to-end runs, keyless local use). Never set in production.
+    llm_transport: Literal["anthropic", "offline"] = "anthropic"
 
 
 @lru_cache

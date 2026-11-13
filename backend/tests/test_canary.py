@@ -36,13 +36,18 @@ def _health_strings(member_id: MemberId, suggestions: dict[str, Any]) -> set[str
 
 
 def _run_with_model_calls(client: TestClient, member_id: MemberId, mode: str) -> dict[str, Any]:
-    """Finish a whole flow, asking the model to match the free-text concern on the way, as a member would."""
+    """Finish a whole flow, calling every model-facing endpoint on the way, as a member could."""
     state = _start(client, member_id, mode)
     suggestions: dict[str, Any] = {}
     while state["next_screen_id"] is not None:
         screen_id = state["next_screen_id"]
         if screen_id == "health_concern":
             client.post(f"/sessions/{state['id']}/conditions/match", json={"text": FREE_TEXT, "request_key": _key()})
+        if screen_id in ("allergies", "eating_barriers", "diet_pattern"):
+            client.post(
+                f"/sessions/{state['id']}/screens/{screen_id}/match",
+                json={"text": "dairy upsets me and I am often too busy", "request_key": _key()},
+            )
         suggestions |= state["suggestions"]
         state = _answer(client, state, screen_id, _default(state, screen_id))
     state["all_suggestions"] = suggestions | state["suggestions"]

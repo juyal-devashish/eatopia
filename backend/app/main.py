@@ -19,6 +19,7 @@ from app.claude_client import (
     MemberText,
     ModelTransport,
     build_match_request,
+    build_option_request,
     call_model,
 )
 from app.clock import get_now
@@ -38,17 +39,22 @@ from app.intake import (
     store_health_summary,
     submit_answer,
 )
+from app.offline_model import OfflineTransport
 from app.questions import Mode, Screen, Section, load_schema
 
-_transport: AnthropicTransport | None = None
+_transport: ModelTransport | None = None
 
 
 def get_transport() -> ModelTransport:
-    """The real Anthropic transport, created on first use. Tests replace it with a fake."""
+    """The Anthropic transport, created on first use. `LLM_TRANSPORT=offline` swaps in a keyword matcher for
+    end-to-end runs and keyless local use; unit tests replace it with a fake."""
     global _transport
     if _transport is None:
         settings = get_settings()
-        _transport = AnthropicTransport(settings.llm, settings.anthropic_api_key)
+        if settings.llm_transport == "offline":
+            _transport = OfflineTransport()
+        else:
+            _transport = AnthropicTransport(settings.llm, settings.anthropic_api_key)
     return _transport
 
 
@@ -92,8 +98,8 @@ class MatchIn(BaseModel):
     request_key: Key
 
 
-class MatchedCondition(BaseModel):
-    condition_id: str
+class MatchedItem(BaseModel):
+    id: str
     label: str
     confidence: str
 
@@ -103,7 +109,7 @@ class MatchOut(BaseModel):
 
     call_id: int
     status: str
-    matches: list[MatchedCondition]
+    matches: list[MatchedItem]
     show_full_list: bool
 
 
@@ -123,9 +129,7 @@ class EgressEntry(BaseModel):
 
 def _match_out(row: LlmCall, catalog: CatalogRef) -> MatchOut:
     matches = [
-        MatchedCondition(
-            condition_id=m["condition_id"], label=catalog.label(m["condition_id"]), confidence=m["confidence"]
-        )
+        MatchedItem(id=m["id"], label=catalog.label(m["id"]), confidence=m["confidence"])
         for m in (row.result or {}).get("matches", [])
     ]
     return MatchOut(
@@ -202,28 +206,64 @@ def create_app() -> FastAPI:
         store_health_summary(db, session, body, now)
         return state(db, session, load_schema(), now, config)
 
+    async def run_match(
+        db: Session,
+        session: IntakeSession,
+        purpose: str,
+        key: str,
+        request: dict[str, Any],
+        choices: CatalogRef,
+        now: datetime,
+        config: Settings,
+        transport: ModelTransport,
+    ) -> MatchOut:
+        """Claim the call (a retry returns the stored result), send it unless capped, and log the outcome."""
+        kind, row = await run_in_threadpool(claim, db, session, purpose, key, request, now, config.llm)
+        if kind == "existing" and row.status == "pending":
+            raise HTTPException(status_code=409, detail="Still matching; try again in a moment")
+        if kind == "claimed":
+            outcome = await call_model(transport, request, choices, config.llm)
+            row = await run_in_threadpool(finish, db, row.id, outcome, now)
+        return _match_out(row, choices)
+
+    def member_text(raw: str, config: Settings) -> MemberText:
+        try:
+            return MemberText.from_member(raw, config.llm.max_member_chars)
+        except InvalidMemberText as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+
     @app.post("/sessions/{session_id}/conditions/match")
     async def match_condition(
         session_id: uuid.UUID, body: MatchIn, db: Db, now: Now, config: Config, transport: Transport
     ) -> MatchOut:
         """Suggest conditions for what the member typed. Only their text and the catalog are sent."""
         session = await run_in_threadpool(_load, db, session_id, now, config)
-        try:
-            text = MemberText.from_member(body.text, config.llm.max_member_chars)
-        except InvalidMemberText as error:
-            raise HTTPException(status_code=422, detail=str(error)) from error
+        text = member_text(body.text, config)
         catalog = CatalogRef.from_catalog(load_catalog())
         request = build_match_request(text, catalog, config.llm)
-
-        kind, row = await run_in_threadpool(
-            claim, db, session, "condition_match", body.request_key, request, now, config.llm
+        return await run_match(
+            db, session, "condition_match", body.request_key, request, catalog, now, config, transport
         )
-        if kind == "existing" and row.status == "pending":
-            raise HTTPException(status_code=409, detail="Still matching; try again in a moment")
-        if kind == "claimed":
-            outcome = await call_model(transport, request, catalog, config.llm)
-            row = await run_in_threadpool(finish, db, row.id, outcome, now)
-        return _match_out(row, catalog)
+
+    @app.post("/sessions/{session_id}/screens/{screen_id}/match")
+    async def match_option(
+        session_id: uuid.UUID,
+        screen_id: str,
+        body: MatchIn,
+        db: Db,
+        now: Now,
+        config: Config,
+        transport: Transport,
+    ) -> MatchOut:
+        """Map a "Something else" answer onto the question's own options, for the member to tap or ignore."""
+        session = await run_in_threadpool(_load, db, session_id, now, config)
+        screen = next((s for s in load_schema().screens if s.id == screen_id), None)
+        if screen is None or not any(o.free_text for o in screen.options):
+            raise HTTPException(status_code=404, detail="That question has no free-text option")
+        text = member_text(body.text, config)
+        options = CatalogRef(items=tuple((o.id, o.label) for o in screen.options if not o.free_text))
+        request = build_option_request(text, screen.title, options, config.llm)
+        return await run_match(db, session, "option_match", body.request_key, request, options, now, config, transport)
 
     @app.get("/sessions/{session_id}/egress")
     def egress(session_id: uuid.UUID, db: Db, now: Now, config: Config) -> list[EgressEntry]:

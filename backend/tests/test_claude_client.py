@@ -93,7 +93,7 @@ def test_request_limits_answers_to_catalog_ids() -> None:
     request = build_match_request(MemberText.from_member("heartburn", 300), CATALOG, SETTINGS)
     schema = request["output_config"]["format"]["schema"]
 
-    assert schema["properties"]["matches"]["items"]["properties"]["condition_id"]["enum"] == CATALOG.ids()
+    assert schema["properties"]["matches"]["items"]["properties"]["id"]["enum"] == CATALOG.ids()
     assert request["output_config"]["effort"] == "low"
     assert request["model"] == "claude-opus-5-5"
     assert request["fallbacks"] == "default"
@@ -105,9 +105,9 @@ def test_parse_keeps_three_unique_matches() -> None:
 
     assert parse_match(response, CATALOG) == {
         "matches": [
-            {"condition_id": "gout", "confidence": "high"},
-            {"condition_id": "anemia", "confidence": "low"},
-            {"condition_id": "migraine", "confidence": "low"},
+            {"id": "gout", "confidence": "high"},
+            {"id": "anemia", "confidence": "low"},
+            {"id": "migraine", "confidence": "low"},
         ]
     }
 

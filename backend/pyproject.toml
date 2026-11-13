@@ -30,7 +30,7 @@ select = ["E", "F", "I", "B", "UP", "SIM"]
 
 [tool.mypy]
 strict = true
-packages = ["app", "tests"]
+packages = ["app", "tests", "evals"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

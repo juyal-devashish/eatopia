@@ -164,7 +164,7 @@ fixed clock.
 ### Backend (FastAPI)
 
 - **Endpoints:** `GET /form?mode=`, `POST /sessions`, `GET /sessions/{id}` (state, suggestions, next screen),
-  `POST /sessions/{id}/health-summary`,
+  `POST /sessions/{id}/health-summary`, `POST /sessions/{id}/screens/{screen_id}/match` ("Something else" mapping),
   `POST /sessions/{id}/answers`, `POST /sessions/{id}/conditions/match`, `POST /sessions/{id}/complete`,
   `GET /sessions/{id}/record`, `GET /sessions/{id}/egress`.
 - **Tables:** `intake_session` (member, mode, started and finished times, tap count); `health_summary` (every field
@@ -219,6 +219,9 @@ Only in `backend/app/claude_client.py`. Model, effort and limits come from confi
 
 Defaults: `claude-opus-5-5`, low effort for matching and medium for the summary, structured outputs, and the API's
 server-side refusal fallback turned on. Refusals, timeouts and parse failures are stored as failed attempts.
+
+**Offline stand-in:** `LLM_TRANSPORT=offline` swaps Claude for a keyword matcher, so end-to-end runs never call a
+paid API and the demo can run locally without a key. It is never used in production.
 
 **Cost guard (the link is public):** at most 5 model calls per session and a daily cap from config. When a cap is
 hit, matching falls back to the full condition list and the summary to a template, and the panel says so.

@@ -20,7 +20,7 @@ def message(text: str, stop_reason: str = "end_turn") -> dict[str, Any]:
 
 
 def matches(*pairs: tuple[str, str]) -> dict[str, Any]:
-    return message(json.dumps({"matches": [{"condition_id": c, "confidence": k} for c, k in pairs]}))
+    return message(json.dumps({"matches": [{"id": c, "confidence": k} for c, k in pairs]}))
 
 
 async def _default(request: dict[str, Any]) -> dict[str, Any]:
