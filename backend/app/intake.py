@@ -33,6 +33,15 @@ class AnswerOut(BaseModel):
     source: Source
 
 
+class RunStats(BaseModel):
+    """What this run asked of the member, for the finish screen's comparison."""
+
+    screens_seen: int
+    filled_from_health: int
+    changed_from_health: int
+    estimates_taken: int
+
+
 class SessionState(BaseModel):
     """Everything the web app needs to render or resume a session."""
 
@@ -47,6 +56,7 @@ class SessionState(BaseModel):
     review_rows: list[str]
     health_summary: HealthSummaryV1 | None
     tap_count: int
+    stats: RunStats
     finished: bool
 
 
@@ -137,14 +147,39 @@ def _review_rows(schema: QuestionSchema, suggestions: dict[str, RuleResult]) -> 
 
 
 def _source(value: Any, suggestion: RuleResult | None) -> Source:
+    """Where an answer came from. "Changed" means the member edited a fact Health filled in; an estimate is only a
+    hint, so picking something else is simply the member's own answer."""
     if suggestion is None or suggestion.status == "ask" or value is None:
         return "member"
-    return "health_confirmed" if value == suggestion.value else "health_changed"
+    if value == suggestion.value:
+        return "health_confirmed"
+    return "health_changed" if suggestion.kind == "fact" else "member"
 
 
 def _answers(db: Session, session: IntakeSession) -> dict[str, IntakeAnswer]:
     rows = db.scalars(select(IntakeAnswer).where(IntakeAnswer.session_id == session.id))
     return {row.screen_id: row for row in rows}
+
+
+def _stats(answers: dict[str, IntakeAnswer], schema: QuestionSchema) -> RunStats:
+    kinds = {s.id: s.health.kind for s in schema.screens if s.health is not None}
+    review = answers.get("health_review")
+    # Facts confirmed on the review card share its key; they were never separate screens.
+    on_card = {
+        k
+        for k, row in answers.items()
+        if review is not None and k in kinds and row.idempotency_key == review.idempotency_key
+    }
+    return RunStats(
+        screens_seen=len(answers) - len(on_card),
+        filled_from_health=sum(
+            1 for k, r in answers.items() if kinds.get(k) == "fact" and r.source == "health_confirmed"
+        ),
+        changed_from_health=sum(1 for r in answers.values() if r.source == "health_changed"),
+        estimates_taken=sum(
+            1 for k, r in answers.items() if kinds.get(k) == "estimate" and r.source == "health_confirmed"
+        ),
+    )
 
 
 def state(
@@ -171,6 +206,7 @@ def state(
         review_rows=review_rows,
         health_summary=_summary(db, session),
         tap_count=session.tap_count,
+        stats=_stats(answers, schema),
         finished=next_screen is None,
     )
 

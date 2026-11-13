@@ -124,6 +124,22 @@ export interface MatchResult {
   show_full_list: boolean;
 }
 
+export interface RunStats {
+  screens_seen: number;
+  filled_from_health: number;
+  changed_from_health: number;
+  estimates_taken: number;
+}
+
+export interface SummaryResult {
+  call_id: number;
+  status: string;
+  text: string;
+  written_by_model: boolean;
+  writer: string | null;
+  health_values_filled: string[];
+}
+
 export interface SessionState {
   id: string;
   member_id: MemberId;
@@ -134,5 +150,6 @@ export interface SessionState {
   review_rows: string[];
   health_summary: HealthSummary | null;
   tap_count: number;
+  stats: RunStats;
   finished: boolean;
 }

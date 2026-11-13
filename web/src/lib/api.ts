@@ -1,4 +1,4 @@
-import type { AnswerValue, Condition, EgressEntry, Form, MatchResult, MemberSummary, Mode, SessionState } from "./types";
+import type { AnswerValue, Condition, EgressEntry, Form, MatchResult, MemberSummary, Mode, SessionState, SummaryResult } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -54,6 +54,8 @@ export const api = {
     }),
   session: (id: string) => request<SessionState>(`/sessions/${id}`),
   egress: (id: string) => request<EgressEntry[]>(`/sessions/${id}/egress`),
+  summary: (id: string, key: string) =>
+    request<SummaryResult>(`/sessions/${id}/summary`, { method: "POST", body: JSON.stringify({ request_key: key }) }),
   matchCondition: (id: string, text: string, key: string) =>
     request<MatchResult>(`/sessions/${id}/conditions/match`, {
       method: "POST",

@@ -33,3 +33,14 @@ def test_offline_matcher_answers_option_requests_and_can_find_nothing() -> None:
         "matches": [{"id": "dairy", "confidence": "medium"}]
     }
     assert asyncio.run(call_model(OfflineTransport(), miss, options, SETTINGS)).result == {"matches": []}
+
+
+def test_offline_matcher_writes_a_labelled_summary() -> None:
+    from app.claude_client import MemberAnswers, build_summary_request, parse_summary
+
+    request = build_summary_request(MemberAnswers(items=(("Goal?", "More energy"),)), ("weight",), SETTINGS)
+
+    outcome = asyncio.run(call_model(OfflineTransport(), request, parse_summary, SETTINGS))
+
+    assert outcome.status == "ok"
+    assert outcome.result is not None and outcome.result["summary"].startswith("Offline stand-in summary")

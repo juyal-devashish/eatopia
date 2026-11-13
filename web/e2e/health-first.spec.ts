@@ -25,7 +25,7 @@ test("member A reviews five facts on one card and skips those questions", async 
   const visited = ["health_review", ...(await runToFinish(page))];
 
   expect(visited.filter((id) => FACTS.includes(id))).toEqual([]);
-  await expect(page.getByTestId("screens-answered")).toHaveText("27");
+  await expect(page.getByTestId("screens-seen")).toHaveText("22");
 });
 
 test("estimates are highlighted, never preselected", async ({ page }) => {

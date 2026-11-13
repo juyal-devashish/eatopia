@@ -6,6 +6,8 @@ import { api, newKey } from "@/lib/api";
 import type { AnswerValue, Condition, Form, RuleResult, SessionState } from "@/lib/types";
 
 import { BehindTheScenes } from "./BehindTheScenes";
+import { DietitianView } from "./DietitianView";
+import { FinishScreen } from "./FinishScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
 import { ScreenView } from "./ScreenView";
 import { PrimaryButton, SecondaryButton } from "./ui";
@@ -30,11 +32,6 @@ function HealthNote({ suggestion }: { suggestion: RuleResult | undefined }) {
   return <p className="mb-3 rounded-xl bg-accent-soft px-3 py-2 text-sm text-ink">{text}</p>;
 }
 
-function formatDuration(ms: number): string {
-  const seconds = Math.max(0, Math.round(ms / 1000));
-  return `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, "0")}s`;
-}
-
 export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
   const [session, setSession] = useState<SessionState | null>(null);
   const [form, setForm] = useState<Form | null>(null);
@@ -45,6 +42,7 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
   const [showPanel, setShowPanel] = useState(false);
+  const [finishView, setFinishView] = useState<"summary" | "dietitian">("summary");
   const taps = useRef(0);
   const screenRef = useRef<HTMLDivElement>(null);
 
@@ -119,28 +117,17 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
   if (!session || !form) return <p className="m-auto text-muted">Loading…</p>;
 
   if (currentId === null) {
+    if (finishView === "dietitian") {
+      return <DietitianView session={session} form={form} conditions={conditions} onBack={() => setFinishView("summary")} />;
+    }
     return (
-      <div data-testid="finish" className="flex flex-1 flex-col gap-4 p-6">
-        <h1 tabIndex={-1} className="mt-auto text-[26px] font-semibold">You&apos;re all set</h1>
-        <p className="text-muted">A dietitian would now review these answers.</p>
-        <dl className="grid grid-cols-3 gap-2 rounded-2xl bg-page p-4 text-center">
-          <div>
-            <dt className="text-xs text-muted">Screens</dt>
-            <dd data-testid="screens-answered" className="text-xl font-semibold">{Object.keys(session.answers).length}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Taps</dt>
-            <dd className="text-xl font-semibold">{session.tap_count}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Time</dt>
-            <dd className="text-xl font-semibold">{finishedAt === null ? "–" : formatDuration(finishedAt - startedAt)}</dd>
-          </div>
-        </dl>
-        <div className="mt-auto">
-          <PrimaryButton onClick={onExit}>Try another member or mode</PrimaryButton>
-        </div>
-      </div>
+      <FinishScreen
+        session={session}
+        startedAt={startedAt}
+        finishedAt={finishedAt}
+        onDietitian={() => setFinishView("dietitian")}
+        onExit={onExit}
+      />
     );
   }
 
