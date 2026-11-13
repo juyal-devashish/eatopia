@@ -58,7 +58,7 @@ uses a typical intake for them (marked *assumed* below). No personal values are 
 | *Last details (assumed)* | Any medications or supplements? (free text, "Add this later") | Not in this build: needs clinical records |
 | *Last details (assumed)* | Anything else your dietitian should know? (optional free text) | No |
 
-7 of 24 questions can be suggested from Health, and all 7 sit in the sections we saw. Their permission sheet asks for steps, workouts, weight and sleep;
+7 of 23 questions can be suggested from Health, all from the 13 questions we saw. Their permission sheet asks for steps, workouts, weight and sleep;
 prefilling also needs height, date of birth and biological sex, which are separate HealthKit read types.
 
 ## Rules we keep (theirs, from `PLAN.md`)
@@ -75,7 +75,7 @@ colours or copy (the repo and the link are public); nothing is saved as an answe
 ## UI rules
 
 1. **Explain the benefit before asking for Health.** A short screen says what connecting gets you ("we'll fill in up
-   to 7 answers"), then the permission sheet. Apple's guidance is to give context before a permission prompt.
+   to 5 answers and suggest 2 more"), then the permission sheet. Apple's guidance is to give context before a permission prompt.
 2. **Preselect facts, never estimates.** Facts come straight from Health (height, weight, date of birth, sex at
    birth, steps). Estimates (exercise frequency, time on your feet) are shown as a highlighted suggestion the member
    taps. Preselected answers tend to be accepted unread, so only facts earn one.
@@ -103,7 +103,7 @@ taps, never auto-selected. Free text is used only for open answers; closed quest
    - **Health first:** the new flow.
 2. **Inside the phone:** one question per screen with tap-to-answer options and a progress bar, like a real app.
 3. **Health first mode:**
-   - Before "About you", a benefit screen (*"Connect Apple Health and we'll fill in up to 7 answers for you"*), then a
+   - Before "About you", a benefit screen (*"Connect Apple Health and we'll fill in up to 5 answers and suggest 2 more"*), then a
      simulated permission sheet marked "Simulated: Apple Health".
    - **Review card, "From Apple Health":** height, weight, date of birth, sex at birth and steps, each row with its
      value, source and date (for example *"30-day average · updated today"*), editable in place. Weak rows (weight
