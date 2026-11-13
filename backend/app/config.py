@@ -23,6 +23,20 @@ class RuleSettings(BaseModel):
     max_weight_kg: float = 300
 
 
+class LlmSettings(BaseModel):
+    """Model, limits and caps for every Claude call. The public demo link spends real money, so caps are low."""
+
+    model: str = "claude-opus-5-5"
+    timeout_seconds: float = 30
+    max_retries: int = 1
+    session_cap: int = 5
+    daily_cap: int = 300
+    match_effort: str = "low"
+    match_max_tokens: int = 4_000
+    max_member_chars: int = 300
+    refusal_fallback: bool = True
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -31,6 +45,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg:///intake"
     session_ttl_hours: int = 24
     rules: RuleSettings = RuleSettings()
+    llm: LlmSettings = LlmSettings()
 
 
 @lru_cache

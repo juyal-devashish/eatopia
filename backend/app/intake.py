@@ -75,9 +75,7 @@ def create_session(
             raise SessionConflict("client_key already used for a different session")
         return existing
     purge_expired(db, now, settings.session_ttl_hours)
-    session = IntakeSession(
-        client_key=client_key, member_id=member_id, mode=mode, created_at=now, tap_count=0
-    )
+    session = IntakeSession(client_key=client_key, member_id=member_id, mode=mode, created_at=now, tap_count=0)
     db.add(session)
     db.commit()
     return session
@@ -90,9 +88,7 @@ def get_session(db: Session, session_id: uuid.UUID, now: datetime, settings: Set
     return session
 
 
-def store_health_summary(
-    db: Session, session: IntakeSession, summary: HealthSummaryV1, now: datetime
-) -> None:
+def store_health_summary(db: Session, session: IntakeSession, summary: HealthSummaryV1, now: datetime) -> None:
     """The iPhone contract: store a HealthSummaryV1 for this session (replacing any earlier one)."""
     row = db.get(HealthSummaryRow, session.id)
     data = summary.model_dump(mode="json")
@@ -167,9 +163,7 @@ def state(
         member_id=_member_id(session),
         mode=_mode(session),
         next_screen_id=next_screen,
-        answers={
-            k: AnswerOut(value=row.value, source=cast(Source, row.source)) for k, row in answers.items()
-        },
+        answers={k: AnswerOut(value=row.value, source=cast(Source, row.source)) for k, row in answers.items()},
         suggestions=suggestions,
         review_rows=review_rows,
         tap_count=session.tap_count,

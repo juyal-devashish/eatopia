@@ -16,7 +16,8 @@ from sqlalchemy import text  # noqa: E402
 
 from app.clock import get_now  # noqa: E402
 from app.db import get_engine  # noqa: E402
-from app.main import create_app  # noqa: E402
+from app.main import create_app, get_transport  # noqa: E402
+from tests.fakes import FakeTransport  # noqa: E402
 
 BACKEND = Path(__file__).parent.parent
 NOW = datetime(2026, 11, 13, 15, 30, tzinfo=UTC)
@@ -46,10 +47,16 @@ def clock() -> Clock:
 
 
 @pytest.fixture
-def client(migrated: None, clock: Clock) -> Iterator[TestClient]:
+def fake_model() -> FakeTransport:
+    return FakeTransport()
+
+
+@pytest.fixture
+def client(migrated: None, clock: Clock, fake_model: FakeTransport) -> Iterator[TestClient]:
     with get_engine().begin() as connection:
-        connection.execute(text("TRUNCATE intake_session, health_summary, intake_answer RESTART IDENTITY"))
+        connection.execute(text("TRUNCATE intake_session, health_summary, intake_answer, llm_call RESTART IDENTITY"))
     app = create_app()
     app.dependency_overrides[get_now] = clock
+    app.dependency_overrides[get_transport] = lambda: fake_model
     with TestClient(app) as test_client:
         yield test_client

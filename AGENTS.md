@@ -11,6 +11,8 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 - `make backend-dev`: API on http://localhost:8000. `make migrate` applies database migrations.
 - Backend tests need Postgres: a local `intake_test` database (`createdb intake_test`), or `TEST_DATABASE_URL`.
   The dev server uses `intake` (`DATABASE_URL`).
+- Model calls need `ANTHROPIC_API_KEY` (or an `ant auth login` profile). Tests never need it: they use
+  `tests/fakes.py`.
 - `make web-dev`: web app on http://localhost:3000.
 
 ## Rules for this repo
