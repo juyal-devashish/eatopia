@@ -125,7 +125,7 @@ export function DemoApp() {
               {error}
             </p>
           ) : null}
-          <div className="mt-auto">
+          <div className="mt-auto flex flex-col">
             <PrimaryButton onClick={start} disabled={starting || members.length === 0}>
               Start onboarding
             </PrimaryButton>
