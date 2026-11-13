@@ -28,7 +28,7 @@ def _answer_count(session_id: str) -> int:
 def test_new_session_starts_at_the_first_screen(client: TestClient) -> None:
     state = _start(client, "a", "health_first")
 
-    assert state["next_screen_id"] == "main_goal"
+    assert state["next_screen_id"] == "health_benefit"
     assert state["suggestions"] == {}
     assert not state["finished"]
 
@@ -158,12 +158,20 @@ def test_free_text_option_and_skips_are_accepted(client: TestClient) -> None:
 # Health first
 
 
-def test_health_first_member_a_reviews_five_facts(client: TestClient) -> None:
+def test_health_first_member_a_reviews_all_seven_on_one_card(client: TestClient) -> None:
     state = _start(client, "a", "health_first")
     state, visited = _run_to(client, state, stop_at="health_review")
 
-    assert visited == ["main_goal", "dietitian_note", "health_benefit", "health_permission_early"]
-    assert state["review_rows"] == ["sex_at_birth", "date_of_birth", "height", "weight", "steps"]
+    assert visited == ["health_benefit", "health_permission_early"]
+    assert state["review_rows"] == [
+        "sex_at_birth",
+        "date_of_birth",
+        "height",
+        "weight",
+        "steps",
+        "exercise_frequency",
+        "activity_level",
+    ]
     assert len(state["suggestions"]) == 7
 
 
@@ -202,15 +210,15 @@ def test_reviewed_facts_are_not_asked_again(client: TestClient) -> None:
     state = _answer(client, state, "health_review", _default(state, "health_review"))
     state = _answer(client, state, "gender_identity", "woman")
 
-    assert state["next_screen_id"] == "weight_goal"
+    assert state["next_screen_id"] == "voice_goals"
 
 
-def test_estimate_picked_as_suggested_is_marked_from_health(client: TestClient) -> None:
+def test_estimate_confirmed_on_the_card_is_marked_from_health(client: TestClient) -> None:
     state = _start(client, "a", "health_first")
-    state, _ = _run_to(client, state, stop_at="exercise_frequency")
+    state, _ = _run_to(client, state, stop_at="health_review")
 
     assert state["suggestions"]["exercise_frequency"]["kind"] == "estimate"
-    state = _answer(client, state, "exercise_frequency", "d5_6")
+    state = _answer(client, state, "health_review", _default(state, "health_review"))
     assert state["answers"]["exercise_frequency"]["source"] == "health_confirmed"
 
 
@@ -218,7 +226,8 @@ def test_member_b_reviews_only_usable_facts(client: TestClient) -> None:
     state = _start(client, "b", "health_first")
     state, _ = _run_to(client, state, stop_at="health_review")
 
-    assert state["review_rows"] == ["date_of_birth", "height", "steps"]
+    # No workouts ever recorded, so exercise is asked on its own screen; activity comes from steps.
+    assert state["review_rows"] == ["date_of_birth", "height", "steps", "activity_level"]
 
 
 def test_member_c_skips_the_empty_review_card(client: TestClient) -> None:
@@ -260,12 +269,20 @@ def test_review_card_is_not_part_of_todays_order(client: TestClient) -> None:
     assert response.status_code == 422
 
 
-def test_member_a_sees_three_fewer_screens_in_health_first(client: TestClient) -> None:
+def test_member_a_sees_seven_screens_in_health_first_instead_of_25(client: TestClient) -> None:
     _, today = _run_to(client, _start(client, "a", "today"))
     _, health_first = _run_to(client, _start(client, "a", "health_first"))
 
     assert len(today) == 25
-    assert len(health_first) == 22
+    assert health_first == [
+        "health_benefit",
+        "health_permission_early",
+        "health_review",
+        "gender_identity",
+        "voice_goals",
+        "voice_food",
+        "voice_kitchen",
+    ]
 
 
 # The HealthKit contract
@@ -331,12 +348,14 @@ def test_stats_count_screens_seen_and_answers_from_health(client: TestClient) ->
         "filled_from_health": 0,
         "changed_from_health": 0,
         "estimates_taken": 0,
+        "filled_from_voice": 0,
     }
     assert health_first["stats"] == {
-        "screens_seen": 22,
+        "screens_seen": 7,
         "filled_from_health": 5,
         "changed_from_health": 0,
         "estimates_taken": 2,
+        "filled_from_voice": 0,
     }
 
 
@@ -352,11 +371,39 @@ def test_stats_count_a_changed_row(client: TestClient) -> None:
     assert state["stats"]["changed_from_health"] == 1
 
 
-def test_picking_something_other_than_an_estimate_is_the_members_own_answer(client: TestClient) -> None:
+def test_changing_an_estimate_on_the_card_is_the_members_own_answer(client: TestClient) -> None:
     state = _start(client, "a", "health_first")
-    state, _ = _run_to(client, state, stop_at="exercise_frequency")
+    state, _ = _run_to(client, state, stop_at="health_review")
+    rows = _default(state, "health_review")["rows"]
+    rows["exercise_frequency"] = "d1_2"
 
-    state = _answer(client, state, "exercise_frequency", "d1_2")
+    state = _answer(client, state, "health_review", {"rows": rows})
 
     assert state["answers"]["exercise_frequency"]["source"] == "member"
     assert state["stats"]["changed_from_health"] == 0
+
+
+# Voice screens
+
+
+def test_voice_screen_must_answer_exactly_its_questions(client: TestClient) -> None:
+    state, _ = _run_to(client, _start(client, "a", "health_first"), stop_at="voice_goals")
+
+    response = client.post(
+        f"/sessions/{state['id']}/answers",
+        json={"screen_id": "voice_goals", "value": {"rows": {"main_goal": "energy"}}, "idempotency_key": _key()},
+    )
+
+    assert response.status_code == 422
+
+
+def test_voice_answers_are_saved_per_question_and_never_asked_again(client: TestClient) -> None:
+    state, _ = _run_to(client, _start(client, "a", "health_first"), stop_at="voice_goals")
+    rows = _default(state, "voice_goals")["rows"]
+    rows["main_goal"] = "energy"
+
+    state = _answer(client, state, "voice_goals", {"rows": rows})
+
+    assert state["answers"]["main_goal"] == {"value": "energy", "source": "member"}
+    assert state["next_screen_id"] == "voice_food"
+    assert state["stats"]["screens_seen"] == 5

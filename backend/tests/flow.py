@@ -63,6 +63,8 @@ def _default(state: dict[str, Any], screen_id: str) -> Any:
             return {"granted": True}
         case "health_review":
             return {"rows": {row: state["suggestions"][row]["value"] for row in state["review_rows"]}}
+        case "voice":
+            return {"rows": {row: _default(state, row) for row in screen.covers}}
         case _:
             return {"seen": True}
 

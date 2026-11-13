@@ -25,8 +25,11 @@ ScreenKind = Literal[
     "health_benefit",
     "health_permission",
     "health_review",
+    "voice",
 ]
 CHOICE_KINDS: frozenset[str] = frozenset({"single_choice", "multi_choice"})
+# Kinds a voice screen can fill in from what the member says.
+ANSWER_KINDS: frozenset[str] = frozenset({"single_choice", "multi_choice", "text", "condition_picker"})
 
 # Rules are implemented in M2. Listing them here keeps the schema from naming a rule that doesn't exist.
 RuleId = Literal[
@@ -79,6 +82,7 @@ class Screen(_Strict):
     catalog: str | None = None
     review_rows: tuple[str, ...] = ()
     read_types: tuple[str, ...] = ()
+    covers: tuple[str, ...] = ()  # a voice screen: the questions one spoken answer fills in
 
     @model_validator(mode="after")
     def _check_shape(self) -> Self:
@@ -93,6 +97,8 @@ class Screen(_Strict):
             raise ValueError(f"{self.id}: only the review card has review rows, and it needs some")
         if (self.kind == "health_permission") != bool(self.read_types):
             raise ValueError(f"{self.id}: only permission screens list read types, and they need some")
+        if (self.kind == "voice") != bool(self.covers):
+            raise ValueError(f"{self.id}: only voice screens cover questions, and they need some")
         return self
 
 
@@ -115,10 +121,20 @@ class QuestionSchema(_Strict):
                 raise ValueError(f"{screen.id}: unknown section {screen.section}")
             for row in screen.review_rows:
                 target = by_id.get(row)
-                if target is None or target.health is None or target.health.kind != "fact":
-                    raise ValueError(f"{screen.id}: review row {row} must be a Health fact screen")
+                if target is None or target.health is None:
+                    raise ValueError(f"{screen.id}: review row {row} must be a Health-linked screen")
+            for covered_id in screen.covers:
+                target = by_id.get(covered_id)
+                if target is None or target.health is not None or target.kind not in ANSWER_KINDS:
+                    raise ValueError(f"{screen.id}: covered {covered_id} must be a question Health can't answer")
+                if not set(screen.modes) <= set(target.modes):
+                    raise ValueError(f"{screen.id}: covered {covered_id} must be in every mode the voice screen is")
 
-        fact_ids = {s.id for s in self.screens if s.health is not None and s.health.kind == "fact"}
+        covered = [c for s in self.screens for c in s.covers]
+        if len(covered) != len(set(covered)):
+            raise ValueError("a question can be covered by one voice screen only")
+
+        linked_ids = {s.id for s in self.screens if s.health is not None}
         for mode in MODES:
             screens = self.for_mode(mode)
             permissions = [i for i, s in enumerate(screens) if s.kind == "health_permission"]
@@ -129,14 +145,18 @@ class QuestionSchema(_Strict):
                 first_linked = min(i for i, s in enumerate(screens) if s.health is not None)
                 if permissions[0] > first_linked:
                     raise ValueError("health_first: permission must come before any Health-linked question")
-                if len(reviews) != 1 or set(reviews[0].review_rows) != fact_ids:
-                    raise ValueError("health_first: one review card must cover every Health fact")
+                if len(reviews) != 1 or set(reviews[0].review_rows) != linked_ids:
+                    raise ValueError("health_first: one review card must cover every Health-linked question")
             elif reviews:
                 raise ValueError(f"{mode}: has no review card")
         return self
 
     def for_mode(self, mode: Mode) -> tuple[Screen, ...]:
         return tuple(screen for screen in self.screens if mode in screen.modes)
+
+    def covered(self, mode: Mode) -> frozenset[str]:
+        """Questions a voice screen in this mode fills in; they never get a screen of their own there."""
+        return frozenset(c for s in self.for_mode(mode) for c in s.covers)
 
 
 @lru_cache

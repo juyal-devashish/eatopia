@@ -80,5 +80,5 @@ def validate(screen: Screen, value: Any) -> None:
         case "health_permission":
             if not (isinstance(value, dict) and set(value) == {"granted"} and isinstance(value["granted"], bool)):
                 raise InvalidAnswer(f"{screen.id}: expected {{'granted': true or false}}")
-        case "health_review":
-            raise InvalidAnswer(f"{screen.id}: submit the review card with its rows")
+        case "health_review" | "voice":
+            raise InvalidAnswer(f"{screen.id}: submit this screen with its rows")
