@@ -40,8 +40,11 @@ export async function answerCurrent(page: Page): Promise<string> {
     case "condition_picker":
       await screen.getByText("No specific condition").click();
       break;
+    case "health_review":
+      for (const button of await screen.getByRole("button", { name: "Looks right" }).all()) await button.click();
+      break;
   }
-  const action = kind === "health_permission" ? "Allow" : "Continue";
+  const action = kind === "health_permission" ? "Allow" : kind === "health_review" ? "Confirm" : "Continue";
   await screen.getByRole("button", { name: action, exact: true }).click();
   await expect(page.locator(`[data-screen-id="${id}"]`)).toHaveCount(0);
   return id;

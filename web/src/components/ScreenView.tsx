@@ -32,6 +32,6 @@ export function ScreenView(props: ScreenProps & { conditions: Condition[] }) {
     case "condition_picker":
       return <ConditionScreen {...props} />;
     case "health_review":
-      return <p className="text-muted">The Health review card arrives in the next build step.</p>;
+      return null; // rendered by Onboarding, which has the rows and suggestions
   }
 }

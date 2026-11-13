@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { api, newKey } from "@/lib/api";
-import type { MemberSummary, Mode } from "@/lib/types";
+import type { Form, MemberSummary, Mode, SessionState } from "@/lib/types";
 
 import { AppShell } from "./AppShell";
+import { BehindTheScenes } from "./BehindTheScenes";
 import { Onboarding } from "./Onboarding";
 import { OptionRow, PrimaryButton } from "./ui";
 
@@ -56,8 +57,8 @@ const MODES: { id: Mode; label: string; description: string; available: boolean 
   {
     id: "health_first",
     label: "Health first",
-    description: "Apple Health access up front, with answers suggested for you to confirm. Arrives in the next build step.",
-    available: false,
+    description: "Apple Health access up front, with answers suggested for you to confirm.",
+    available: true,
   },
 ];
 
@@ -68,6 +69,8 @@ export function DemoApp() {
   const [active, setActive] = useState<Active | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [view, setView] = useState<{ session: SessionState; form: Form } | null>(null);
+  const onUpdate = useCallback((session: SessionState, form: Form) => setView({ session, form }), []);
   // The session in progress, if any, read from this browser's storage (nothing on the server render).
   const storedRaw = useSyncExternalStore(subscribe, readRaw, () => null);
   const resumable = useMemo(() => parse(storedRaw), [storedRaw]);
@@ -94,12 +97,14 @@ export function DemoApp() {
   function exit() {
     store(null);
     setActive(null);
+    setView(null);
   }
 
   return (
+    <div className="flex min-h-dvh w-full items-center justify-center gap-8">
     <AppShell>
       {active ? (
-        <Onboarding key={active.id} sessionId={active.id} startedAt={active.startedAt} onExit={exit} />
+        <Onboarding key={active.id} sessionId={active.id} startedAt={active.startedAt} onExit={exit} onUpdate={onUpdate} />
       ) : (
         <main className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pt-8 pb-6">
           <div>
@@ -167,5 +172,11 @@ export function DemoApp() {
         </main>
       )}
     </AppShell>
+      {active && view ? (
+        <aside aria-label="Behind the scenes" tabIndex={0} className="hidden h-[min(932px,100dvh)] w-[380px] shrink-0 overflow-y-auto py-8 lg:block">
+          <BehindTheScenes session={view.session} form={view.form} />
+        </aside>
+      ) : null}
+    </div>
   );
 }

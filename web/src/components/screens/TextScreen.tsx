@@ -5,7 +5,7 @@ import { useState } from "react";
 import { PrimaryButton, ScreenActions, ScreenHeading, SecondaryButton } from "../ui";
 import type { ScreenProps } from "./types";
 
-export function TextScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
+export function TextScreen({ screen, initial, onSubmit, busy, actionLabel }: ScreenProps) {
   const [text, setText] = useState(typeof initial === "string" ? initial : "");
   const headingId = `${screen.id}-heading`;
   return (
@@ -21,7 +21,7 @@ export function TextScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
       />
       <ScreenActions>
         <PrimaryButton disabled={!text.trim() || busy} onClick={() => onSubmit(text.trim())}>
-          Continue
+          {actionLabel ?? "Continue"}
         </PrimaryButton>
         {screen.optional ? (
           <SecondaryButton disabled={busy} onClick={() => onSubmit(null)}>

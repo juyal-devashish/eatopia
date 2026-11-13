@@ -3,15 +3,31 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, newKey } from "@/lib/api";
-import type { AnswerValue, Condition, Form, SessionState } from "@/lib/types";
+import type { AnswerValue, Condition, Form, RuleResult, SessionState } from "@/lib/types";
 
+import { BehindTheScenes } from "./BehindTheScenes";
+import { ReviewScreen } from "./screens/ReviewScreen";
 import { ScreenView } from "./ScreenView";
-import { PrimaryButton } from "./ui";
+import { PrimaryButton, SecondaryButton } from "./ui";
 
 interface Props {
   sessionId: string;
   startedAt: number;
   onExit: () => void;
+  /** Lets the page show the Behind the scenes panel beside the app on wide screens. */
+  onUpdate: (session: SessionState, form: Form) => void;
+}
+
+/** One line above a Health-linked question saying what Apple Health contributed, or why it couldn't. */
+function HealthNote({ suggestion }: { suggestion: RuleResult | undefined }) {
+  if (!suggestion) return null;
+  const text =
+    suggestion.status === "ask"
+      ? `Apple Health couldn't answer this. ${suggestion.evidence}.`
+      : suggestion.kind === "estimate"
+        ? `Suggested from Apple Health: ${suggestion.evidence}. Tap it if it's right.`
+        : `From Apple Health: ${suggestion.evidence}.`;
+  return <p className="mb-3 rounded-xl bg-accent-soft px-3 py-2 text-sm text-ink">{text}</p>;
 }
 
 function formatDuration(ms: number): string {
@@ -19,7 +35,7 @@ function formatDuration(ms: number): string {
   return `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, "0")}s`;
 }
 
-export function Onboarding({ sessionId, startedAt, onExit }: Props) {
+export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
   const [session, setSession] = useState<SessionState | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [conditions, setConditions] = useState<Condition[]>([]);
@@ -28,6 +44,7 @@ export function Onboarding({ sessionId, startedAt, onExit }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
+  const [showPanel, setShowPanel] = useState(false);
   const taps = useRef(0);
   const screenRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +70,10 @@ export function Onboarding({ sessionId, startedAt, onExit }: Props) {
   }, [sessionId]);
 
   const currentId = viewing ?? session?.next_screen_id ?? null;
+
+  useEffect(() => {
+    if (session && form) onUpdate(session, form);
+  }, [session, form, onUpdate]);
 
   // Move focus to the new screen so keyboard and screen-reader users start at its heading.
   useEffect(() => {
@@ -158,6 +179,14 @@ export function Onboarding({ sessionId, startedAt, onExit }: Props) {
             {section?.assumed ? " · illustrative" : ""}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowPanel((open) => !open)}
+          aria-expanded={showPanel}
+          className="min-h-11 px-1 text-sm font-semibold text-accent lg:hidden"
+        >
+          Details
+        </button>
         <button type="button" onClick={onExit} className="min-h-11 px-1 text-sm font-semibold text-accent">
           Exit
         </button>
@@ -173,13 +202,38 @@ export function Onboarding({ sessionId, startedAt, onExit }: Props) {
         }}
         className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-6 outline-none"
       >
-        <ScreenView
-          screen={screen}
-          initial={session.answers[screen.id]?.value}
-          onSubmit={(value) => submit(screen.id, value)}
-          busy={busy}
-          conditions={conditions}
-        />
+        {showPanel ? (
+          <div className="flex flex-col gap-4 lg:hidden">
+            <BehindTheScenes session={session} form={form} />
+            <SecondaryButton onClick={() => setShowPanel(false)}>Back to onboarding</SecondaryButton>
+          </div>
+        ) : screen.kind === "health_review" ? (
+          <ReviewScreen
+            screen={screen}
+            rows={session.review_rows}
+            suggestions={session.suggestions}
+            screensById={Object.fromEntries(form.screens.map((s) => [s.id, s]))}
+            earlier={Object.fromEntries(
+              session.review_rows.filter((row) => row in session.answers).map((row) => [row, session.answers[row].value]),
+            )}
+            conditions={conditions}
+            initial={undefined}
+            onSubmit={(value) => submit(screen.id, value)}
+            busy={busy}
+          />
+        ) : (
+          <>
+            <HealthNote suggestion={session.suggestions[screen.id]} />
+            <ScreenView
+              screen={screen}
+              initial={session.answers[screen.id]?.value}
+              onSubmit={(value) => submit(screen.id, value)}
+              busy={busy}
+              conditions={conditions}
+              suggestion={session.suggestions[screen.id]}
+            />
+          </>
+        )}
         {error ? (
           <p role="alert" className="mt-3 text-sm text-red-700">
             {error}

@@ -19,7 +19,7 @@ function parts(value: unknown): { year: string; month: string; day: string } {
 
 const select = "min-h-12 rounded-2xl border border-line bg-surface px-3 text-base";
 
-export function DateScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
+export function DateScreen({ screen, initial, onSubmit, busy, actionLabel }: ScreenProps) {
   const [date, setDate] = useState(() => parts(initial));
   const daysInMonth = date.year && date.month ? new Date(Number(date.year), Number(date.month), 0).getDate() : 31;
   const valid = date.year && date.month && date.day && Number(date.day) <= daysInMonth;
@@ -61,7 +61,7 @@ export function DateScreen({ screen, initial, onSubmit, busy }: ScreenProps) {
       </fieldset>
       <ScreenActions>
         <PrimaryButton disabled={!valid || busy} onClick={submit}>
-          Continue
+          {actionLabel ?? "Continue"}
         </PrimaryButton>
       </ScreenActions>
     </>
