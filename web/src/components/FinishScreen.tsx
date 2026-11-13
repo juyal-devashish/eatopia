@@ -34,7 +34,7 @@ export function FinishScreen({
   const rows: [string, string, string][] = [
     ["Screens", String(stats.screens_seen), String(baseline.screens)],
     ["Taps", String(session.tap_count), `${baseline.min_taps}+`],
-    ["Filled for you", String(stats.filled_from_health + stats.estimates_taken), "0"],
+    ["Filled for you", String(stats.filled_from_health + stats.estimates_taken + stats.filled_from_voice), "0"],
   ];
 
   return (
@@ -88,6 +88,7 @@ export function FinishScreen({
         From Apple Health: {stats.filled_from_health} answers filled for you
         {stats.estimates_taken ? `, ${stats.estimates_taken} suggestions used` : ""}
         {stats.changed_from_health ? `, ${stats.changed_from_health} changed by you` : ""}.
+        {stats.filled_from_voice ? ` From what you said: ${stats.filled_from_voice} answers filled in.` : ""}
       </p>
 
       <div className="mt-auto flex flex-col gap-2">

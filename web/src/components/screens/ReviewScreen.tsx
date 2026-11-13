@@ -18,8 +18,9 @@ interface ReviewProps extends ScreenProps {
 }
 
 /**
- * "From Apple Health": every Health fact on one card. Each row can be changed in place. Rows with weak data
- * need their own tap before Confirm works, so confirming everything at once can't skip them.
+ * "From Apple Health": every answer Health can give, on one card. Each row can be changed in place. Facts are
+ * filled in; estimates (exercise, activity) and rows with weak data need their own tap before Confirm works, so
+ * confirming everything at once can't accept a guess unread.
  */
 export function ReviewScreen({ screen, rows, suggestions, screensById, earlier, conditions, onSubmit, busy }: ReviewProps) {
   const [values, setValues] = useState<Record<string, AnswerValue>>(() =>
@@ -28,7 +29,8 @@ export function ReviewScreen({ screen, rows, suggestions, screensById, earlier, 
   const [checked, setChecked] = useState<Set<string>>(() => new Set(rows.filter((row) => row in earlier)));
   const [editing, setEditing] = useState<string | null>(null);
 
-  const needsCheck = rows.filter((row) => suggestions[row].status === "needs_check" && !checked.has(row));
+  const tapFirst = (row: string) => suggestions[row].status === "needs_check" || suggestions[row].kind === "estimate";
+  const needsCheck = rows.filter((row) => tapFirst(row) && !checked.has(row));
 
   if (editing) {
     const target = screensById[editing];
@@ -57,13 +59,14 @@ export function ReviewScreen({ screen, rows, suggestions, screensById, earlier, 
       <ul className="flex flex-col gap-2.5">
         {rows.map((row) => {
           const suggestion = suggestions[row];
-          const flagged = suggestion.status === "needs_check" && !checked.has(row);
+          const flagged = tapFirst(row) && !checked.has(row);
+          const estimate = suggestion.kind === "estimate" && suggestion.status !== "needs_check";
           const changed = JSON.stringify(values[row]) !== JSON.stringify(suggestion.value);
           return (
             <li
               key={row}
               data-row={row}
-              className={`rounded-2xl border p-4 ${flagged ? "border-warn-ink/40 bg-warn-soft" : "border-transparent bg-card"}`}
+              className={`rounded-2xl border p-4 ${flagged ? (estimate ? "border-accent/40 bg-accent-soft" : "border-warn-ink/40 bg-warn-soft") : "border-transparent bg-card"}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -85,7 +88,9 @@ export function ReviewScreen({ screen, rows, suggestions, screensById, earlier, 
               </p>
               {flagged ? (
                 <div className="mt-3 flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-warn-ink">Please check this one</p>
+                  <p className={`text-sm font-semibold ${estimate ? "text-accent" : "text-warn-ink"}`}>
+                    {estimate ? "Suggested from your activity. Is it right?" : "Please check this one"}
+                  </p>
                   <button
                     type="button"
                     onClick={() => setChecked((c) => new Set(c).add(row))}
@@ -101,7 +106,7 @@ export function ReviewScreen({ screen, rows, suggestions, screensById, earlier, 
       </ul>
       <ScreenActions>
         <PrimaryButton disabled={needsCheck.length > 0 || busy} onClick={() => onSubmit({ rows: values })}>
-          {needsCheck.length > 0 ? "Check the highlighted answer" : "Confirm"}
+          {needsCheck.length > 0 ? "Check highlighted answers" : "Confirm"}
         </PrimaryButton>
       </ScreenActions>
     </>

@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /** Start the demo's one scenario: synthetic member A, Apple Health first. */
 export async function startOnboarding(page: Page) {
@@ -10,6 +10,11 @@ export async function startOnboarding(page: Page) {
 export async function currentScreen(page: Page): Promise<{ id: string; kind: string }> {
   const screen = page.locator("[data-screen-id]");
   return { id: (await screen.getAttribute("data-screen-id"))!, kind: (await screen.getAttribute("data-kind"))! };
+}
+
+/** Click every match of a locator; each one disappears once clicked (such as "Looks right"). */
+export async function tapAll(locator: Locator) {
+  while ((await locator.count()) > 0) await locator.first().click();
 }
 
 /** Answer whatever screen is showing with a valid default, the way a member tapping through would. */
@@ -40,10 +45,13 @@ export async function answerCurrent(page: Page): Promise<string> {
       await screen.getByText("No specific condition").click();
       break;
     case "health_review":
-      for (const button of await screen.getByRole("button", { name: "Looks right" }).all()) await button.click();
+      await tapAll(screen.getByRole("button", { name: "Looks right" }));
+      break;
+    case "voice":
+      await answerVoice(page, id);
       break;
   }
-  const action = kind === "health_permission" ? "Allow" : kind === "health_review" ? "Confirm" : "Continue";
+  const action = kind === "health_permission" ? "Allow" : kind === "health_review" || kind === "voice" ? "Confirm" : "Continue";
   await screen.getByRole("button", { name: action, exact: true }).click();
   await expect(page.locator(`[data-screen-id="${id}"]`)).toHaveCount(0);
   return id;
@@ -61,4 +69,19 @@ export async function runToFinish(page: Page): Promise<string[]> {
 
 export async function answerUntil(page: Page, screenId: string) {
   while ((await currentScreen(page)).id !== screenId) await answerCurrent(page);
+}
+
+/** Speak (simulated), confirm a matched condition, and choose anything required that wasn't mentioned. */
+export async function answerVoice(page: Page, id: string) {
+  const screen = page.locator(`[data-screen-id="${id}"]`);
+  await screen.getByRole("button", { name: "Speak (simulated)" }).click();
+  await expect(screen.getByRole("heading", { name: "From what you said" })).toBeVisible({ timeout: 15_000 });
+  await tapAll(screen.getByRole("button", { name: "Looks right" }));
+  while ((await screen.getByRole("button", { name: /^Choose / }).count()) > 0) {
+    await screen.getByRole("button", { name: /^Choose / }).first().click();
+    const noCondition = screen.getByText("No specific condition");
+    if (await noCondition.isVisible()) await noCondition.click();
+    else await screen.locator("label").first().click();
+    await screen.getByRole("button", { name: "Use this" }).click();
+  }
 }

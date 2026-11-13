@@ -10,6 +10,7 @@ import { DietitianView } from "./DietitianView";
 import { FinishScreen } from "./FinishScreen";
 import { HEALTH_SYNC_MS, HealthSyncScreen } from "./screens/HealthSyncScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
+import { VoiceScreen } from "./screens/VoiceScreen";
 import { ScreenView } from "./ScreenView";
 import { PrimaryButton, SecondaryButton } from "./ui";
 
@@ -59,8 +60,14 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
         setSession(state);
         setForm(schema);
         setConditions(catalog);
-        // After a reload, Back walks through the screens already answered, in flow order.
-        setHistory(schema.screens.filter((s) => s.id in state.answers).map((s) => s.id));
+        // After a reload, Back walks through the screens already answered, in flow order. Questions answered on
+        // the Health card or a voice screen were never screens of their own.
+        const grouped = new Set(
+          schema.screens.flatMap((s) =>
+            s.kind === "voice" || (s.kind === "health_review" && s.id in state.answers) ? [...s.covers, ...s.review_rows] : [],
+          ),
+        );
+        setHistory(schema.screens.filter((s) => s.id in state.answers && !grouped.has(s.id)).map((s) => s.id));
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Could not load the session");
       }
@@ -147,14 +154,16 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
 
   if (syncing) return <HealthSyncScreen readTypes={syncing} />;
 
-  const screens = form.screens;
+  // Questions a voice screen fills in never get a screen of their own, so they don't count towards progress.
+  const covered = new Set(form.screens.flatMap((s) => s.covers));
+  const screens = form.screens.filter((s) => !covered.has(s.id) || s.id === currentId);
   const screen = screens.find((s) => s.id === currentId);
   if (!screen) return <p className="m-auto text-muted">Unknown screen {currentId}</p>;
   const index = screens.indexOf(screen);
   const section = form.sections.find((s) => s.id === screen.section);
   const progress = Math.round((index / screens.length) * 100);
   // One bar segment per section, filled as the member moves through it.
-  const segments = form.sections.map((sec) => {
+  const segments = form.sections.filter((sec) => screens.some((s) => s.section === sec.id)).map((sec) => {
     const inSection = screens.filter((s) => s.section === sec.id);
     const done = inSection.filter((s) => screens.indexOf(s) < index).length;
     return { id: sec.id, fill: inSection.length ? done / inSection.length : 0 };
@@ -231,6 +240,19 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
             )}
             conditions={conditions}
             initial={undefined}
+            onSubmit={(value) => submit(screen.id, value)}
+            busy={busy}
+          />
+        ) : screen.kind === "voice" ? (
+          <VoiceScreen
+            screen={screen}
+            covered={screen.covers.map((id) => form.screens.find((s) => s.id === id)!)}
+            script={session.voice_scripts[screen.id]}
+            earlier={Object.fromEntries(
+              screen.covers.filter((id) => id in session.answers).map((id) => [id, session.answers[id].value]),
+            )}
+            conditions={conditions}
+            onExtract={(text) => api.extract(sessionId, screen.id, text, newKey())}
             onSubmit={(value) => submit(screen.id, value)}
             busy={busy}
           />

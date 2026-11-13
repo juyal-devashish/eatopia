@@ -1,4 +1,4 @@
-import type { AnswerValue, Condition, EgressEntry, Form, MatchResult, MemberSummary, Mode, SessionState, SummaryResult } from "./types";
+import type { AnswerValue, Condition, EgressEntry, ExtractResult, Form, MatchResult, MemberSummary, Mode, SessionState, SummaryResult } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -63,6 +63,11 @@ export const api = {
     }),
   matchOption: (id: string, screenId: string, text: string, key: string) =>
     request<MatchResult>(`/sessions/${id}/screens/${screenId}/match`, {
+      method: "POST",
+      body: JSON.stringify({ text, request_key: key }),
+    }),
+  extract: (id: string, screenId: string, text: string, key: string) =>
+    request<ExtractResult>(`/sessions/${id}/screens/${screenId}/extract`, {
       method: "POST",
       body: JSON.stringify({ text, request_key: key }),
     }),

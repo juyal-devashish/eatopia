@@ -11,12 +11,13 @@ test("the finish screen compares the run with the same questions one per screen"
 
   const table = page.getByTestId("comparison");
   await expect(table).toBeVisible();
-  await expect(page.getByTestId("run-Screens")).toHaveText("22");
+  await expect(page.getByTestId("run-Screens")).toHaveText("7");
   await expect(page.getByTestId("baseline-Screens")).toHaveText("25");
   await expect(page.getByTestId("baseline-Taps")).toHaveText("45+");
-  // The test taps the first option on each screen, so it uses no suggestions: 5 facts come from Health.
-  await expect(page.getByTestId("run-Filled for you")).toHaveText("5");
-  await expect(page.getByTestId("from-health")).toContainText("5 answers filled for you.");
+  // 5 facts and 2 estimates from Health; the offline stand-in hears 8 answers in member A's three scripts.
+  await expect(page.getByTestId("run-Filled for you")).toHaveText("15");
+  await expect(page.getByTestId("from-health")).toContainText("5 answers filled for you, 2 suggestions used.");
+  await expect(page.getByTestId("from-health")).toContainText("From what you said: 8 answers filled in.");
 });
 
 test("the dietitian view shows the summary and where each answer came from", async ({ page }) => {
@@ -32,7 +33,8 @@ test("the dietitian view shows the summary and where each answer came from", asy
   await expect(view.getByText(/filled in by code afterwards/)).toBeVisible();
   await expect(view.getByText(/Written by the offline stand-in, not a model/)).toBeVisible();
   await expect(view.locator('[data-answer="weight"]')).toContainText("From Health, confirmed");
-  await expect(view.locator('[data-answer="main_goal"]')).toContainText("Entered by member");
+  await expect(view.locator('[data-answer="main_goal"]')).toContainText("From what they said, confirmed");
+  await expect(view.locator('[data-answer="gender_identity"]')).toContainText("Entered by member");
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(results.violations.map((v) => v.id)).toEqual([]);
 });

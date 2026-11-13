@@ -1,27 +1,29 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { answerCurrent, answerUntil, currentScreen, runToFinish, startOnboarding } from "./flow";
+import { answerCurrent, answerUntil, currentScreen, runToFinish, startOnboarding, tapAll } from "./flow";
 
 const FACTS = ["sex_at_birth", "date_of_birth", "height", "weight", "steps"];
+const ESTIMATES = ["exercise_frequency", "activity_level"];
 
 async function expectAccessible(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 }
 
-test("member A reviews five facts on one card and skips those questions", async ({ page }) => {
+test("member A reviews seven Health answers on one card and skips those questions", async ({ page }) => {
   await startOnboarding(page);
   await answerUntil(page, "health_review");
 
-  await expect(page.locator("[data-row]")).toHaveCount(5);
+  await expect(page.locator("[data-row]")).toHaveCount(7);
   await expectAccessible(page);
+  await tapAll(page.getByRole("button", { name: "Looks right" }));
   await page.getByRole("button", { name: "Confirm" }).click();
   await expect.poll(async () => (await currentScreen(page)).id).toBe("gender_identity");
   const visited = ["health_review", ...(await runToFinish(page))];
 
-  expect(visited.filter((id) => FACTS.includes(id))).toEqual([]);
-  await expect(page.getByTestId("run-Screens")).toHaveText("22");
+  expect(visited.filter((id) => [...FACTS, ...ESTIMATES].includes(id))).toEqual([]);
+  await expect(page.getByTestId("run-Screens")).toHaveText("7");
 });
 
 test("after Allow, a sync screen shows what is read from Apple Health", async ({ page }) => {
@@ -38,14 +40,16 @@ test("after Allow, a sync screen shows what is read from Apple Health", async ({
   await expect(sync).toHaveCount(0);
 });
 
-test("estimates are highlighted, never preselected", async ({ page }) => {
+test("estimates on the card need their own tap", async ({ page }) => {
   await startOnboarding(page);
-  await answerUntil(page, "exercise_frequency");
+  await answerUntil(page, "health_review");
 
-  const suggested = page.getByRole("radio", { name: /5 to 6 days/ });
-  await expect(page.getByText("Suggested", { exact: true })).toBeVisible();
-  await expect(suggested).not.toBeChecked();
-  await expect(page.getByText(/Suggested from Apple Health: 22 workouts/)).toBeVisible();
+  const exercise = page.locator('[data-row="exercise_frequency"]');
+  await expect(exercise).toContainText("5 to 6 days");
+  await expect(exercise).toContainText("Suggested from your activity. Is it right?");
+  await expect(page.getByRole("button", { name: "Check highlighted answers" })).toBeDisabled();
+  await tapAll(page.getByRole("button", { name: "Looks right" }));
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeEnabled();
   await expectAccessible(page);
 });
 
@@ -73,9 +77,10 @@ test("a row with weak data needs its own tap before Confirm", async ({ page }) =
   await startOnboarding(page);
   await answerUntil(page, "health_review");
 
-  const confirm = page.getByRole("button", { name: "Check the highlighted answer" });
+  const confirm = page.getByRole("button", { name: "Check highlighted answers" });
   await expect(confirm).toBeDisabled();
-  await page.getByRole("button", { name: "Looks right" }).click();
+  await expect(page.locator('[data-row="weight"]')).toContainText("Please check this one");
+  await tapAll(page.getByRole("button", { name: "Looks right" }));
   await expect(page.getByRole("button", { name: "Confirm" })).toBeEnabled();
 });
 
@@ -88,6 +93,7 @@ test("changing a row records it as changed", async ({ page, isMobile }) => {
   await page.getByRole("radio", { name: "12,000 or more" }).check();
   await page.getByRole("button", { name: "Use this" }).click();
   await expect(page.locator('[data-row="steps"]')).toContainText("Changed by you");
+  await tapAll(page.getByRole("button", { name: "Looks right" }));
   await page.getByRole("button", { name: "Confirm" }).click();
 
   const panel = page.getByRole("complementary", { name: "Behind the scenes" });
@@ -106,7 +112,7 @@ test("the panel opens from Details on a phone", async ({ page, isMobile }) => {
   await expect(page.getByText("What each rule did").filter({ visible: true })).toBeVisible();
   await expectAccessible(page);
   await page.getByRole("button", { name: "Back to onboarding" }).click();
-  await expect(page.locator("[data-row]")).toHaveCount(5);
+  await expect(page.locator("[data-row]")).toHaveCount(7);
 });
 
 test("the start screen is accessible", async ({ page }) => {

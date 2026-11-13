@@ -15,6 +15,7 @@ const STATUS: Record<RuleResult["status"], string> = {
 const SOURCE: Record<string, string> = {
   health_confirmed: "from Health, confirmed",
   health_changed: "from Health, changed",
+  voice_confirmed: "from what they said, confirmed",
   member: "entered by member",
 };
 
@@ -121,7 +122,8 @@ export function BehindTheScenes({ session, form }: { session: SessionState; form
       <Section title="What the model saw">
         {egress.length === 0 ? (
           <p className="text-muted">
-            No model calls yet. Claude is only used when the member describes a health concern in their own words.
+            No model calls yet. Claude is only used to turn what the member says into answers, and for the dietitian
+            note.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">

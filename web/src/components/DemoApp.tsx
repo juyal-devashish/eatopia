@@ -100,7 +100,8 @@ export function DemoApp() {
             <p className="text-xs font-semibold tracking-wide text-accent uppercase">Independent demo · synthetic data only</p>
             <h1 className="mt-2 font-serif text-[34px] leading-[1.1] font-medium">An onboarding that fills itself in</h1>
             <p className="mt-2 text-muted">
-              Apple Health fills in what it already knows and you confirm it, so there&apos;s far less to tap.
+              Apple Health fills in what it already knows. A few spoken sentences fill in most of the rest. You confirm
+              every answer, with far fewer taps than a form.
             </p>
           </div>
 
