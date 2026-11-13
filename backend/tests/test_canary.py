@@ -50,6 +50,7 @@ def _run_with_model_calls(client: TestClient, member_id: MemberId, mode: str) ->
             )
         suggestions |= state["suggestions"]
         state = _answer(client, state, screen_id, _default(state, screen_id))
+    client.post(f"/sessions/{state['id']}/summary", json={"request_key": _key()})
     state["all_suggestions"] = suggestions | state["suggestions"]
     return state
 

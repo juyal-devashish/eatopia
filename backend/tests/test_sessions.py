@@ -319,3 +319,44 @@ def test_todays_order_state_has_no_summary(client: TestClient) -> None:
     state, _ = _run_to(client, state)
 
     assert state["health_summary"] is None
+
+
+def test_stats_count_screens_seen_and_answers_from_health(client: TestClient) -> None:
+    _, _ = _run_to(client, _start(client, "a", "today"))
+    today, _ = _run_to(client, _start(client, "a", "today"))
+    health_first, _ = _run_to(client, _start(client, "a", "health_first"))
+
+    assert today["stats"] == {
+        "screens_seen": 25,
+        "filled_from_health": 0,
+        "changed_from_health": 0,
+        "estimates_taken": 0,
+    }
+    assert health_first["stats"] == {
+        "screens_seen": 22,
+        "filled_from_health": 5,
+        "changed_from_health": 0,
+        "estimates_taken": 2,
+    }
+
+
+def test_stats_count_a_changed_row(client: TestClient) -> None:
+    state = _start(client, "a", "health_first")
+    state, _ = _run_to(client, state, stop_at="health_review")
+    rows = {row: state["suggestions"][row]["value"] for row in state["review_rows"]}
+    rows["steps"] = "s12000_plus"
+
+    state = _answer(client, state, "health_review", {"rows": rows})
+
+    assert state["stats"]["filled_from_health"] == 4
+    assert state["stats"]["changed_from_health"] == 1
+
+
+def test_picking_something_other_than_an_estimate_is_the_members_own_answer(client: TestClient) -> None:
+    state = _start(client, "a", "health_first")
+    state, _ = _run_to(client, state, stop_at="exercise_frequency")
+
+    state = _answer(client, state, "exercise_frequency", "d1_2")
+
+    assert state["answers"]["exercise_frequency"]["source"] == "member"
+    assert state["stats"]["changed_from_health"] == 0

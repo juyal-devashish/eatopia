@@ -20,11 +20,14 @@ from app.claude_client import (
     ModelTransport,
     build_match_request,
     build_option_request,
+    build_summary_request,
     call_model,
+    parse_summary,
 )
 from app.clock import get_now
 from app.config import Settings, get_settings
 from app.db import IntakeSession, LlmCall, get_db
+from app.dietitian import fill_placeholders, member_answers, placeholders, template_summary
 from app.egress import claim, finish, log_for
 from app.health.members import MEMBER_IDS, load_member
 from app.health.models import MemberId
@@ -39,7 +42,7 @@ from app.intake import (
     store_health_summary,
     submit_answer,
 )
-from app.offline_model import OfflineTransport
+from app.offline_model import OFFLINE_MODEL, OfflineTransport
 from app.questions import Mode, Screen, Section, load_schema
 
 _transport: ModelTransport | None = None
@@ -111,6 +114,21 @@ class MatchOut(BaseModel):
     status: str
     matches: list[MatchedItem]
     show_full_list: bool
+
+
+class SummaryIn(BaseModel):
+    request_key: Key
+
+
+class SummaryOut(BaseModel):
+    """The dietitian summary with Health values filled in by code, or a plain fallback when it couldn't be written."""
+
+    call_id: int
+    status: str
+    text: str
+    written_by_model: bool
+    writer: str | None  # the model that answered, or the offline stand-in
+    health_values_filled: list[str]
 
 
 class EgressEntry(BaseModel):
@@ -264,6 +282,45 @@ def create_app() -> FastAPI:
         options = CatalogRef(items=tuple((o.id, o.label) for o in screen.options if not o.free_text))
         request = build_option_request(text, screen.title, options, config.llm)
         return await run_match(db, session, "option_match", body.request_key, request, options, now, config, transport)
+
+    @app.post("/sessions/{session_id}/summary")
+    async def summary(
+        session_id: uuid.UUID, body: SummaryIn, db: Db, now: Now, config: Config, transport: Transport
+    ) -> SummaryOut:
+        """A short note for the dietitian. The model sees the member's own answers, never a Health value."""
+        session = await run_in_threadpool(_load, db, session_id, now, config)
+        schema, catalog = load_schema(), load_catalog()
+        current = await run_in_threadpool(state, db, session, schema, now, config)
+        answers = {k: a.value for k, a in current.answers.items()}
+        request = build_summary_request(member_answers(schema, answers, catalog), placeholders(schema), config.llm)
+
+        kind, row = await run_in_threadpool(
+            claim, db, session, "dietitian_summary", body.request_key, request, now, config.llm
+        )
+        if kind == "existing" and row.status == "pending":
+            raise HTTPException(status_code=409, detail="Still writing; try again in a moment")
+        if kind == "claimed":
+            outcome = await call_model(transport, request, parse_summary, config.llm)
+            row = await run_in_threadpool(finish, db, row.id, outcome, now)
+        writer = (row.response or {}).get("model")
+        if row.status != "ok" or not row.result:
+            return SummaryOut(
+                call_id=row.id,
+                status=row.status,
+                text=template_summary(row.status),
+                written_by_model=False,
+                writer=writer,
+                health_values_filled=[],
+            )
+        text, filled = fill_placeholders(str(row.result["summary"]), schema, answers, catalog)
+        return SummaryOut(
+            call_id=row.id,
+            status=row.status,
+            text=text,
+            written_by_model=writer != OFFLINE_MODEL,
+            writer=writer,
+            health_values_filled=filled,
+        )
 
     @app.get("/sessions/{session_id}/egress")
     def egress(session_id: uuid.UUID, db: Db, now: Now, config: Config) -> list[EgressEntry]:

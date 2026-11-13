@@ -34,6 +34,8 @@ class LlmSettings(BaseModel):
     daily_cap: int = 300
     match_effort: str = "low"
     match_max_tokens: int = 4_000
+    summary_effort: str = "medium"
+    summary_max_tokens: int = 4_000
     max_member_chars: int = 300
     refusal_fallback: bool = True
 

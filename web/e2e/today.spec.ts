@@ -10,7 +10,7 @@ for (const member of ["A", "B", "C"] as const) {
 
     expect(visited).toHaveLength(25);
     expect(visited.indexOf("health_permission_late")).toBeGreaterThan(visited.indexOf("exercise_frequency"));
-    await expect(page.getByTestId("screens-answered")).toHaveText("25");
+    await expect(page.getByTestId("screens-seen")).toHaveText("25");
   });
 }
 

@@ -294,7 +294,7 @@ eatopia/
 | M4 | Web: start screen, mobile-first app shell, "Today's order" end to end | Playwright run passes for all members |
 | M5 | Web: "Health first" with benefit screen, permission sheet, review card, estimate hints, Behind the scenes panel | Playwright and axe runs pass for all members |
 | M6 | "Something else" mapping and the condition-match eval | eval run and reported (≈50 calls, with your OK) |
-| M7 | Finish screen comparison and dietitian view | both render for all members |
+| M7 | Finish screen comparison, dietitian view and summary (Health values filled in by code) | both render for all members |
 | M8 | Deploy to Railway (web, API, Postgres) with Sentry | full flow works on the public link, on laptop and phone |
 | M9 | Measure and record | timings, a 60–90 second video, a README a reviewer can read in five minutes (the link, the one HealthKit request, the firewall test), and the note |
 

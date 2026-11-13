@@ -1,4 +1,4 @@
-import type { AnswerValue, Screen } from "./types";
+import type { AnswerValue, Condition, Screen } from "./types";
 import { cmToFeetInches, kgToLb } from "./units";
 
 const DATE = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -29,7 +29,7 @@ function optionLabel(screen: Screen, item: unknown): string {
 }
 
 /** How an answer reads back to the member, for the review card and the dietitian view. */
-export function formatAnswer(screen: Screen, value: AnswerValue): string {
+export function formatAnswer(screen: Screen, value: AnswerValue, conditions: Condition[] = []): string {
   if (value === null || value === undefined) return screen.skip_label ?? "Skipped";
   switch (screen.kind) {
     case "single_choice":
@@ -42,6 +42,11 @@ export function formatAnswer(screen: Screen, value: AnswerValue): string {
       return value && typeof value === "object" && "cm" in value ? formatHeight(Number(value.cm)) : String(value);
     case "weight":
       return value && typeof value === "object" && "kg" in value ? formatWeight(Number(value.kg)) : String(value);
+    case "condition_picker":
+      if (value && typeof value === "object" && "condition_id" in value) {
+        return conditions.find((c) => c.id === value.condition_id)?.label ?? String(value.condition_id);
+      }
+      return optionLabel(screen, value);
     default:
       return typeof value === "string" ? value : JSON.stringify(value);
   }
