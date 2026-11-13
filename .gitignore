@@ -5,3 +5,6 @@ __pycache__/
 *.pyc
 node_modules/
 .DS_Store
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
