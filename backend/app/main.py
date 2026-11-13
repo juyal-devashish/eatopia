@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -38,12 +38,14 @@ from app.intake import (
     SessionState,
     create_session,
     get_session,
+    session_exists,
     state,
     store_health_summary,
     submit_answer,
 )
 from app.offline_model import OFFLINE_MODEL, OfflineTransport
 from app.questions import Mode, Screen, Section, load_schema
+from app.ratelimit import SessionLimiter, client_address
 
 _transport: ModelTransport | None = None
 
@@ -165,6 +167,7 @@ def _load(db: Session, session_id: uuid.UUID, now: datetime, settings: Settings)
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="Health-first intake API")
+    limiter = SessionLimiter(settings.sessions_per_hour_per_client)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,
@@ -193,7 +196,10 @@ def create_app() -> FastAPI:
         ]
 
     @app.post("/sessions")
-    def new_session(body: CreateSession, db: Db, now: Now, config: Config) -> SessionState:
+    def new_session(body: CreateSession, request: Request, db: Db, now: Now, config: Config) -> SessionState:
+        # A retried create (same client key) is never limited; only new sessions count.
+        if not session_exists(db, body.client_key) and not limiter.allow(client_address(request), now):
+            raise HTTPException(status_code=429, detail="Too many new sessions from here. Try again in an hour.")
         try:
             session = create_session(db, body.member_id, body.mode, body.client_key, now, config)
         except SessionConflict as error:

@@ -1,4 +1,4 @@
-# M8 plan: deploy to Railway (draft, nothing created yet)
+# M8 plan: deploy to Railway (code prep done; nothing created yet)
 
 Everything below stays on paper until you approve each gate. Railway CLI 5.71 is signed in as you, in the
 workspace "Devashish Juyal's Projects" (existing projects: `backend`, `sama4`). That workspace has **no spending
@@ -35,7 +35,7 @@ All data is synthetic. Sessions are deleted after 24 hours. Nothing personal is 
 
 | Gate | What happens | Who |
 |---|---|---|
-| A. Create | Show `railway config plan`, then `railway config apply`: creates the project, three services and Postgres. Nothing serves traffic yet. | Me, after your OK |
+| A. Create | `railway init --name eatopia-demo` (an empty project), link this repo to it, show `railway config plan`, then `railway config apply` (three services and Postgres) and `railway domain` for `web` and `api` (Railway's generated addresses can't be described in the file). | Me, after your OK |
 | B. API key | You paste `ANTHROPIC_API_KEY` into the `api` service's variables in the Railway dashboard. I never see it. | You |
 | C. First deploy | Deploy both services, then check: `/health`, a full run of both orders on a laptop and a phone, one real condition match and one summary (2 to 3 Sonnet calls). | Me, after your OK |
 | D. Limits (recommended) | A hard spending limit on the Railway workspace (for example $10 a month), and a spend limit on the Anthropic workspace that holds the key. | You, or me with your OK for Railway |
@@ -55,3 +55,20 @@ All data is synthetic. Sessions are deleted after 24 hours. Nothing personal is 
   domain means rebuilding `web`. The infrastructure file wires this up.
 - **Rollback:** redeploy the previous build from the dashboard, or `railway down`. After the job search, delete
   the project.
+
+## Step 1 status (code prep)
+
+Done on `feat/m8-deploy`; nothing created or deployed.
+
+- `backend/Dockerfile`, `web/Dockerfile` (Next.js standalone server) and their `.dockerignore` files.
+- `.railway/railway.ts`: Postgres, `api` (Dockerfile build, `alembic upgrade head` before each deploy, `/health`
+  check) and `web`, deploying from `main`. The services reference each other's Railway addresses, and
+  `ANTHROPIC_API_KEY` is marked `preserve()` so applying the file never clears the key you set by hand.
+  `make check` typechecks the file against Railway's SDK.
+- API: Railway's database URL is accepted, the offline stand-in is refused in production, and one client
+  address can start 20 sessions an hour (the right-most X-Forwarded-For entry, which can't be forged).
+- Checked without Docker, which isn't running on this machine: the API in production mode with a
+  `postgresql://` URL (migrations, `/health`, session start), the standalone web server with the API address
+  baked in, and all 43 end-to-end runs against that same standalone server. The Docker images themselves are
+  first built by Railway at gate C.
+- Sentry is not added yet: it needs a DSN from your Sentry account.

@@ -26,13 +26,23 @@ export default defineConfig({
         ALLOWED_ORIGINS: `["http://localhost:${WEB_PORT}"]`,
         // Never call a paid API from tests: a keyword matcher answers in Claude's place.
         LLM_TRANSPORT: "offline",
+        // Every test starts sessions from the same address; the per-client limit is covered by backend tests.
+        SESSIONS_PER_HOUR_PER_CLIENT: "0",
       },
       timeout: 120_000,
     },
     {
-      command: `npm run build && npx next start -p ${WEB_PORT}`,
+      // The same standalone server the production image runs (web/Dockerfile).
+      command:
+        "npm run build && mkdir -p public && cp -r public .next/standalone/ && " +
+        "cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
       url: `http://localhost:${WEB_PORT}`,
-      env: { ...process.env, NEXT_PUBLIC_API_URL: `http://localhost:${API_PORT}` },
+      env: {
+        ...process.env,
+        NEXT_PUBLIC_API_URL: `http://localhost:${API_PORT}`,
+        PORT: String(WEB_PORT),
+        HOSTNAME: "localhost",
+      },
       timeout: 300_000,
     },
   ],

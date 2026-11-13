@@ -76,6 +76,10 @@ def purge_expired(db: Session, now: datetime, ttl_hours: int) -> None:
     db.execute(delete(IntakeSession).where(IntakeSession.created_at < now - timedelta(hours=ttl_hours)))
 
 
+def session_exists(db: Session, client_key: str) -> bool:
+    return db.scalar(select(IntakeSession.id).where(IntakeSession.client_key == client_key)) is not None
+
+
 def create_session(
     db: Session, member_id: MemberId, mode: Mode, client_key: str, now: datetime, settings: Settings
 ) -> IntakeSession:
