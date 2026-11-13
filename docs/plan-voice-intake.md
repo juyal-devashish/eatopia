@@ -34,24 +34,23 @@ So the demo shows one run, and the finish screen says what the same questions wo
 
 About 7 screens instead of 25.
 
-## Input: speech or typing, Claude fills the form
+## Input: simulated voice, Claude fills the form
 
-The Claude API takes text, not audio, so speech becomes text first:
+Voice is **simulated**, like the Apple Health sheet. The real app is on iOS, where on-device speech recognition
+(Apple's Speech framework) is the natural fit; a web demo can't rely on browser speech (it fails silently in the
+in-app browsers reviewers often open links in). What matters for the proof of concept is the step after speech:
+Claude turning a few spoken sentences into a dozen confirmed answers.
 
-- **Speech to text in the browser** (Web Speech API: Safari on iPhone, Chrome). No new vendor, no cost. Audio is
-  handled by the browser's own service (Apple or Google), which the voice screen says in one line.
-- **Typing is always available**, and is the path when speech isn't supported (Firefox, some in-app browsers) or
-  the member declines the microphone. The rest of the flow is identical: Claude reads the text and fills the form.
-- End-to-end tests use the typing path. Speech recognition itself is not tested in CI.
-
-Known gap: apps that open links in their own browser view (LinkedIn, Gmail, Slack on iPhone) expose
-`webkitSpeechRecognition` but it does nothing there, so feature detection can't be trusted. The mic is therefore an
-extra: the text box is always on screen, and if recognition errors or hears nothing within a few seconds, the
-screen says "Voice isn't available here, type instead". Step 0 is a throwaway mic test on iPhone Safari, Android
-Chrome and one in-app browser before the voice screen is built.
-
-If browser speech proves unreliable on the target phones, the demo stays typing-first with the mic as an extra;
-the proof of concept (one sentence instead of many screens) holds either way.
+- Each voice screen has a mic button marked **"Simulated: voice"**. Tapping it plays a scripted, synthetic answer
+  for member A into the transcript box word by word, as live dictation would appear, then stops on its own.
+- The visitor can edit the transcript or clear it and type their own before sending, so they can test the
+  extraction with their own words. Nothing records audio.
+- Scripts live with member A's synthetic fixtures (`backend/app/data/voice/a.json`), labelled synthetic, and are
+  written to exercise the interesting cases: a condition in plain words, an allergy said in passing, a topic left
+  out so it is asked inline.
+- **The iOS contract**, like the HealthKit one: the app transcribes on the device and sends only the text to
+  `POST /sessions/{id}/screens/{screen_id}/extract`. Nothing else changes.
+- Taps are counted as the real app would need them: mic, then Confirm (the simulated dictation stops itself).
 
 ## Backend
 
@@ -84,12 +83,12 @@ saving. Today's order, and members B and C, stay in the backend and its tests; t
 - The model sees only what the member said or typed (identifiers stripped) and our own question and condition
   lists. No Health-linked question is in the extraction schema, so a weight said aloud is never extracted.
 - `test_claude_client` allows the new `QuestionRefs` type and still forbids every Health type and import.
-- The canary test adds an extraction call for every member.
+- The canary test adds an extraction call for every member, and checks the voice scripts hold no Health marker.
 
 ## Tests and eval
 
 - Unit: schema checks, extraction parsing and re-validation, provenance, idempotent submit, caps, the baseline count.
-- End to end: the single scenario on desktop and phone sizes, typing path, axe scan.
+- End to end: the single scenario on desktop and phone sizes (simulated dictation and a typed edit), axe scan.
 - **Extraction eval:** about 30 synthetic transcripts with expected answers per question, including "not
   mentioned", conflicting statements and a prompt injection. Dry run is free; the live run is about 30 calls and
   needs an OK first.
@@ -99,7 +98,7 @@ saving. Today's order, and members B and C, stay in the backend and its tests; t
 1. Schema: `voice` kind, estimates on the review card, `dietitian_note` moved.
 2. Backend extraction: `claude_client`, endpoint, offline stand-in, canary and firewall tests.
 3. Saving voice answers, provenance, stats, the baseline count.
-4. Web: single-scenario start, review card estimate rows, `VoiceScreen` (speech plus typing).
+4. Web: single-scenario start, review card estimate rows, `VoiceScreen` (simulated dictation, editable).
 5. Finish screen and dietitian view.
 6. End-to-end tests; README and the older plan updated.
 7. Extraction eval (live run with OK).
