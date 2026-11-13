@@ -8,6 +8,7 @@ import type { AnswerValue, Condition, Form, RuleResult, SessionState } from "@/l
 import { BehindTheScenes } from "./BehindTheScenes";
 import { DietitianView } from "./DietitianView";
 import { FinishScreen } from "./FinishScreen";
+import { HEALTH_SYNC_MS, HealthSyncScreen } from "./screens/HealthSyncScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
 import { ScreenView } from "./ScreenView";
 import { PrimaryButton, SecondaryButton } from "./ui";
@@ -43,6 +44,8 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
   const [showPanel, setShowPanel] = useState(false);
   const [finishView, setFinishView] = useState<"summary" | "dietitian">("summary");
+  // The read types being "read" from Apple Health while the sync screen shows, or null.
+  const [syncing, setSyncing] = useState<string[] | null>(null);
   const taps = useRef(0);
   const screenRef = useRef<HTMLDivElement>(null);
 
@@ -82,9 +85,18 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
     async (screenId: string, value: AnswerValue) => {
       setBusy(true);
       setError(null);
+      const screen = form?.screens.find((s) => s.id === screenId);
+      const granted =
+        screen?.kind === "health_permission" && typeof value === "object" && value !== null && "granted" in value && value.granted === true;
+      if (granted && screen) setSyncing(screen.read_types);
       try {
         // One key per submission: a retry inside api.answer reuses it, so the answer is saved once.
-        const next = await api.answer(sessionId, screenId, value, newKey(), taps.current);
+        const saving = api.answer(sessionId, screenId, value, newKey(), taps.current);
+        // After Allow, keep the sync screen up for a moment even when the API answers at once.
+        const [next] = await Promise.all([
+          saving,
+          granted ? new Promise((resolve) => window.setTimeout(resolve, HEALTH_SYNC_MS)) : null,
+        ]);
         taps.current = 0;
         setHistory((h) => [...h, screenId]);
         setViewing(null);
@@ -93,10 +105,11 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
       } finally {
+        setSyncing(null);
         setBusy(false);
       }
     },
-    [sessionId],
+    [sessionId, form],
   );
 
   function back() {
@@ -131,6 +144,8 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
       />
     );
   }
+
+  if (syncing) return <HealthSyncScreen readTypes={syncing} />;
 
   const screens = form.screens;
   const screen = screens.find((s) => s.id === currentId);

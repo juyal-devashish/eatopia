@@ -24,6 +24,20 @@ test("member A reviews five facts on one card and skips those questions", async 
   await expect(page.getByTestId("run-Screens")).toHaveText("22");
 });
 
+test("after Allow, a sync screen shows what is read from Apple Health", async ({ page }) => {
+  await startOnboarding(page);
+  await answerUntil(page, "health_permission_early");
+  await page.getByRole("button", { name: "Allow", exact: true }).click();
+
+  const sync = page.getByTestId("health-sync");
+  await expect(sync).toBeVisible();
+  await expect(sync.getByRole("heading", { name: "Reading your Apple Health data" })).toBeVisible();
+  await expect(sync.getByText("Simulated: Apple Health")).toBeVisible();
+  await expectAccessible(page);
+  await expect.poll(async () => (await currentScreen(page)).id).toBe("health_review");
+  await expect(sync).toHaveCount(0);
+});
+
 test("estimates are highlighted, never preselected", async ({ page }) => {
   await startOnboarding(page);
   await answerUntil(page, "exercise_frequency");

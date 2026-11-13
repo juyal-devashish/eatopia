@@ -3,7 +3,7 @@
 import { PrimaryButton, ScreenActions, SecondaryButton } from "../ui";
 import type { ScreenProps } from "./types";
 
-const READ_TYPE_LABELS: Record<string, string> = {
+export const READ_TYPE_LABELS: Record<string, string> = {
   HKCharacteristicTypeIdentifierBiologicalSex: "Sex",
   HKCharacteristicTypeIdentifierDateOfBirth: "Date of birth",
   HKQuantityTypeIdentifierHeight: "Height",
