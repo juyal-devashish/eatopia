@@ -7,7 +7,7 @@ from sqlalchemy import text
 from app.config import LlmSettings
 from app.db import get_engine
 from tests.conftest import NOW, Clock
-from tests.fakes import FakeTransport, message
+from tests.fakes import FakeTransport, matches, message
 from tests.flow import _key, _start
 
 CAP = LlmSettings().session_cap
@@ -128,3 +128,38 @@ def test_capped_calls_are_logged_with_nothing_sent(client: TestClient) -> None:
 
     assert log[-1]["status"] == "capped"
     assert log[-1]["request"] is None
+
+
+def _match_option(client: TestClient, session_id: str, screen_id: str, words: str) -> Any:
+    return client.post(f"/sessions/{session_id}/screens/{screen_id}/match", json={"text": words, "request_key": _key()})
+
+
+def test_something_else_maps_onto_the_questions_options(client: TestClient, fake_model: FakeTransport) -> None:
+    async def respond(request: dict[str, Any]) -> dict[str, Any]:
+        return matches(("dairy", "high"))
+
+    fake_model.responder = respond
+    state = _start(client, "a", "today")
+
+    body = _match_option(client, state["id"], "allergies", "milk makes me bloated").json()
+    sent = fake_model.requests[0]
+    offered = sent["output_config"]["format"]["schema"]["properties"]["matches"]["items"]["properties"]["id"]["enum"]
+
+    assert [m["label"] for m in body["matches"]] == ["Dairy or lactose"]
+    assert "other" not in offered
+    assert "<question>Any food allergies or intolerances?</question>" in sent["messages"][0]["content"]
+
+
+def test_option_matching_needs_a_free_text_question(client: TestClient) -> None:
+    state = _start(client, "a", "today")
+
+    assert _match_option(client, state["id"], "meals_per_day", "five").status_code == 404
+    assert _match_option(client, state["id"], "no_such_screen", "five").status_code == 404
+
+
+def test_option_and_condition_calls_share_the_session_cap(client: TestClient) -> None:
+    state = _start(client, "a", "today")
+    for _ in range(CAP):
+        _match(client, state["id"], "heartburn")
+
+    assert _match_option(client, state["id"], "allergies", "milk").json()["status"] == "capped"

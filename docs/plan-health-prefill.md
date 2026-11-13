@@ -164,7 +164,7 @@ fixed clock.
 ### Backend (FastAPI)
 
 - **Endpoints:** `GET /form?mode=`, `POST /sessions`, `GET /sessions/{id}` (state, suggestions, next screen),
-  `POST /sessions/{id}/health-summary`,
+  `POST /sessions/{id}/health-summary`, `POST /sessions/{id}/screens/{screen_id}/match` ("Something else" mapping),
   `POST /sessions/{id}/answers`, `POST /sessions/{id}/conditions/match`, `POST /sessions/{id}/complete`,
   `GET /sessions/{id}/record`, `GET /sessions/{id}/egress`.
 - **Tables:** `intake_session` (member, mode, started and finished times, tap count); `health_summary` (every field
@@ -217,8 +217,11 @@ Only in `backend/app/claude_client.py`. Model, effort and limits come from confi
 3. **Dietitian summary.** The model gets member-entered answers and field names only, and writes `{{weight}}`-style
    placeholders; the backend fills in the Health values.
 
-Defaults: `claude-opus-5-5`, low effort for matching and medium for the summary, structured outputs, and the API's
+Defaults: `claude-sonnet-5-5` (chosen after the eval run below; Opus 5.5 was the first default), low effort for matching and medium for the summary, structured outputs, and the API's
 server-side refusal fallback turned on. Refusals, timeouts and parse failures are stored as failed attempts.
+
+**Offline stand-in:** `LLM_TRANSPORT=offline` swaps Claude for a keyword matcher, so end-to-end runs never call a
+paid API and the demo can run locally without a key. It is never used in production.
 
 **Cost guard (the link is public):** at most 5 model calls per session and a daily cap from config. When a cap is
 hit, matching falls back to the full condition list and the summary to a template, and the panel says so.
@@ -276,7 +279,9 @@ eatopia/
 - **Condition-matching eval**, reported the way they report food matching ("81% of 679 foods matched"): about 50
   synthetic phrasings, each with its expected condition or "no match". We report how often the right condition is
   in the top 3, how often a suggestion is wrong, and how often "no match" is correctly returned. About 50 real calls,
-  run only with your OK.
+  run only with your OK. First live run (2026-11-13, Claude Sonnet 5.5, low effort): 45/45 top-3, 45/45 top-1,
+  7/7 correct "no match", no failures, in 22 seconds. The set is clear-cut, so harder cases come next; see
+  `backend/evals/results/README.md`.
 
 ## Milestones (one commit each)
 

@@ -231,6 +231,13 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
               busy={busy}
               conditions={conditions}
               suggestion={session.suggestions[screen.id]}
+              onMatch={
+                screen.kind === "condition_picker"
+                  ? (text) => api.matchCondition(sessionId, text, newKey())
+                  : screen.options.some((o) => o.free_text)
+                    ? (text) => api.matchOption(sessionId, screen.id, text, newKey())
+                    : undefined
+              }
             />
           </>
         )}

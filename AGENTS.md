@@ -11,8 +11,10 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 - `make backend-dev`: API on http://localhost:8000. `make migrate` applies database migrations.
 - Backend tests need Postgres: a local `intake_test` database (`createdb intake_test`), or `TEST_DATABASE_URL`.
   The dev server uses `intake` (`DATABASE_URL`).
-- Model calls need `ANTHROPIC_API_KEY` (or an `ant auth login` profile). Tests never need it: they use
-  `tests/fakes.py`.
+- Model calls need `ANTHROPIC_API_KEY` (or an `ant auth login` profile). Tests never need it: unit tests use
+  `tests/fakes.py`, and end-to-end runs set `LLM_TRANSPORT=offline` (a keyword matcher, `app/offline_model.py`).
+- `cd backend && uv run python -m evals.condition_match` is a free dry run of the condition-match eval;
+  `--live` makes one real Claude call per case (about 50). Ask before running it.
 - `make web-dev`: web app on http://localhost:3000 (Next picks 3001 if 3000 is busy; then start the API with
   `ALLOWED_ORIGINS='["http://localhost:3001"]'`).
 - `make e2e`: Playwright runs on desktop and phone sizes. It starts its own API (port 8100, database

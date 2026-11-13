@@ -117,6 +117,13 @@ export interface EgressEntry {
   created_at: string;
 }
 
+export interface MatchResult {
+  call_id: number;
+  status: string;
+  matches: { id: string; label: string; confidence: string }[];
+  show_full_list: boolean;
+}
+
 export interface SessionState {
   id: string;
   member_id: MemberId;

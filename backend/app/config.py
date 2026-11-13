@@ -1,6 +1,7 @@
 """Settings read from the environment. Names are listed in backend/.env.example."""
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -26,7 +27,7 @@ class RuleSettings(BaseModel):
 class LlmSettings(BaseModel):
     """Model, limits and caps for every Claude call. The public demo link spends real money, so caps are low."""
 
-    model: str = "claude-opus-5-5"
+    model: str = "claude-sonnet-5-5"  # measured on the condition-match eval; see evals/results/README.md
     timeout_seconds: float = 30
     max_retries: int = 1
     session_cap: int = 5
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
     # Read from ANTHROPIC_API_KEY (environment or backend/.env). When unset, the SDK falls back to an
     # `ant auth login` profile.
     anthropic_api_key: SecretStr | None = None
+    # "offline" swaps Claude for a keyword matcher (end-to-end runs, keyless local use). Never set in production.
+    llm_transport: Literal["anthropic", "offline"] = "anthropic"
 
 
 @lru_cache
