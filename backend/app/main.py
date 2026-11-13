@@ -47,7 +47,8 @@ def get_transport() -> ModelTransport:
     """The real Anthropic transport, created on first use. Tests replace it with a fake."""
     global _transport
     if _transport is None:
-        _transport = AnthropicTransport(get_settings().llm)
+        settings = get_settings()
+        _transport = AnthropicTransport(settings.llm, settings.anthropic_api_key)
     return _transport
 
 

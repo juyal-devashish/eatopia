@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     session_ttl_hours: int = 24
     rules: RuleSettings = RuleSettings()
     llm: LlmSettings = LlmSettings()
+    # Read from ANTHROPIC_API_KEY (environment or backend/.env). When unset, the SDK falls back to an
+    # `ant auth login` profile.
+    anthropic_api_key: SecretStr | None = None
 
 
 @lru_cache

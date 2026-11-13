@@ -163,3 +163,15 @@ def test_api_error_outcome() -> None:
     fake.responder = respond
 
     assert _run(fake).status == "error"
+
+
+def test_api_key_is_read_from_env_file_and_never_printed(tmp_path: Path) -> None:
+    from app.config import Settings
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("ANTHROPIC_API_KEY=sk-ant-test-not-real\n")
+    settings = Settings(_env_file=env_file)  # type: ignore[call-arg]
+
+    assert settings.anthropic_api_key is not None
+    assert settings.anthropic_api_key.get_secret_value() == "sk-ant-test-not-real"
+    assert "sk-ant-test-not-real" not in repr(settings)

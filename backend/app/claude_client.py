@@ -12,7 +12,7 @@ import time
 from typing import Any, Literal, Protocol
 
 import anthropic
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, SecretStr, ValidationError
 
 from app.catalog import ConditionCatalog
 from app.config import LlmSettings
@@ -104,15 +104,20 @@ class ModelTransport(Protocol):
 class AnthropicTransport:
     """Sends requests with the async client, so a slow model call never blocks other members."""
 
-    def __init__(self, settings: LlmSettings) -> None:
+    def __init__(self, settings: LlmSettings, api_key: SecretStr | None = None) -> None:
         self._settings = settings
+        self._api_key = api_key
         self._client: anthropic.AsyncAnthropic | None = None
 
     async def send(self, request: dict[str, Any]) -> dict[str, Any]:
         if self._client is None:
-            self._client = anthropic.AsyncAnthropic(
-                timeout=self._settings.timeout_seconds, max_retries=self._settings.max_retries
-            )
+            timeout, retries = self._settings.timeout_seconds, self._settings.max_retries
+            if self._api_key is not None:
+                self._client = anthropic.AsyncAnthropic(
+                    api_key=self._api_key.get_secret_value(), timeout=timeout, max_retries=retries
+                )
+            else:  # the SDK finds ANTHROPIC_API_KEY or an `ant auth login` profile itself
+                self._client = anthropic.AsyncAnthropic(timeout=timeout, max_retries=retries)
         response = await self._client.beta.messages.create(**request)
         dumped: dict[str, Any] = response.model_dump(mode="json")
         return dumped
