@@ -108,13 +108,13 @@ export function DemoApp() {
       ) : (
         <main className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pt-8 pb-6">
           <div>
-            <p className="text-xs font-semibold tracking-wide text-accent uppercase">Demo · synthetic data only</p>
-            <h1 className="mt-2 text-[28px] leading-tight font-semibold tracking-tight">An onboarding that fills itself in</h1>
+            <p className="text-xs font-semibold tracking-wide text-accent uppercase">Independent demo · synthetic data only</p>
+            <h1 className="mt-2 font-serif text-[34px] leading-[1.1] font-medium">An onboarding that fills itself in</h1>
             <p className="mt-2 text-muted">Pick a synthetic member and an order, then go through onboarding as they would.</p>
           </div>
 
           {resumable ? (
-            <div className="flex flex-col gap-3 rounded-2xl border border-line bg-page p-4">
+            <div className="flex flex-col gap-3 rounded-[1.25rem] bg-card p-4">
               <p className="font-semibold">You have an onboarding in progress.</p>
               <PrimaryButton onClick={() => setActive(resumable)}>Continue where you left off</PrimaryButton>
             </div>
@@ -141,20 +141,20 @@ export function DemoApp() {
             {MODES.map((m) => (
               <label
                 key={m.id}
-                className={`flex cursor-pointer gap-3 rounded-2xl border p-4 has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${mode === m.id ? "border-accent bg-accent-soft" : "border-line bg-surface"} ${m.available ? "" : "opacity-60"}`}
+                className={`flex cursor-pointer gap-3 rounded-[1.25rem] border-2 p-4 has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${mode === m.id ? "border-accent bg-accent-soft" : "border-transparent bg-card"} ${m.available ? "" : "opacity-60"}`}
               >
+                <span className="flex-1">
+                  <span className="block font-semibold">{m.label}</span>
+                  <span className="block text-sm text-muted">{m.description}</span>
+                </span>
                 <input
                   type="radio"
                   name="mode"
-                  className="mt-1 size-5 shrink-0 accent-accent"
+                  className="option-check mt-0.5"
                   checked={mode === m.id}
                   disabled={!m.available}
                   onChange={() => setMode(m.id)}
                 />
-                <span>
-                  <span className="block font-semibold">{m.label}</span>
-                  <span className="block text-sm text-muted">{m.description}</span>
-                </span>
               </label>
             ))}
           </fieldset>

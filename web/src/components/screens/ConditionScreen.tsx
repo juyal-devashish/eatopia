@@ -110,7 +110,7 @@ export function ConditionScreen({
             placeholder="Filter the list"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="min-h-12 rounded-2xl border border-line px-4 text-base"
+            className="min-h-12 rounded-[1.25rem] border border-line bg-card px-4 text-base"
           />
           <fieldset aria-label="All conditions" className="flex flex-col gap-2">
             {shown.map((condition) => (

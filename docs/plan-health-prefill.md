@@ -74,8 +74,9 @@ prefilling also needs height, date of birth and biological sex, which are separa
 4. Identifiers are stripped before any text goes to the model.
 5. Cycle data stays out of scope.
 
-Ours: synthetic data only, labelled as synthetic on screen; our own visual design, with no Eatopia branding, screens,
-colours or copy (the repo and the link are public); nothing is saved as an answer until the member confirms it.
+Ours: synthetic data only, labelled as synthetic on screen; the look follows their design language (warm
+off-white, deep green, serif headings, pill buttons; decided 2026-11-13) with no logo, name, copy, typeface,
+screens or signature details of theirs; nothing is saved as an answer until the member confirms it.
 
 ## UI rules
 
@@ -313,7 +314,8 @@ measure, never "15 minutes to 3".
 2. ~~Was anything prefilled?~~ Settled: nothing was preselected in their app.
 3. **It's a simulation of the iPhone side.** We say so on screen, and the HealthKit contract shows the one request
    their app would make.
-4. **Looking too much like their app.** Same flow logic, our own design. No screenshots of their app in the repo.
+4. **Looking too much like their app.** Same flow and design language, but no logo, name, copy or screenshots, and
+   the start screen says it's an independent demo.
 5. **Public link costs.** Covered by the caps; Anthropic usage limits set as a backstop.
 6. **They may already plan this.** The pitch leads with "Health access first, suggestions the member confirms",
    which stands either way.

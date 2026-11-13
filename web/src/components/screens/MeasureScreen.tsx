@@ -8,7 +8,7 @@ import { PrimaryButton, ScreenActions, ScreenHeading, SecondaryButton } from "..
 import type { ScreenProps } from "./types";
 
 const UNIT_LABELS: Record<string, string> = { ft_in: "Feet and inches", cm: "Centimetres", lb: "Pounds", kg: "Kilograms" };
-const field = "min-h-12 w-full rounded-2xl border border-line bg-surface px-4 text-lg";
+const field = "min-h-14 w-full rounded-[1.25rem] border border-line bg-card px-4 text-xl font-semibold";
 
 function stored(value: unknown, key: "cm" | "kg"): number | null {
   if (value && typeof value === "object" && key in value) {
@@ -66,7 +66,7 @@ export function MeasureScreen({ screen, initial, onSubmit, busy, actionLabel }: 
             role="radio"
             aria-checked={unit === u}
             onClick={() => switchUnit(u)}
-            className={`min-h-11 rounded-2xl text-sm font-semibold ${unit === u ? "bg-ink text-white" : "bg-page text-muted"}`}
+            className={`min-h-12 rounded-full text-[15px] font-semibold ${unit === u ? "bg-ink text-white" : "bg-disabled text-muted"}`}
           >
             {UNIT_LABELS[u] ?? u}
           </button>

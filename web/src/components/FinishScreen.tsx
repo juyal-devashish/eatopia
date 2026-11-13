@@ -61,13 +61,13 @@ export function FinishScreen({
   return (
     <div data-testid="finish" className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 pt-8 pb-6">
       <div>
-        <h1 tabIndex={-1} className="text-[26px] font-semibold">
+        <h1 tabIndex={-1} className="font-serif text-[32px] font-medium">
           You&apos;re all set
         </h1>
         <p className="mt-1 text-muted">A dietitian would now review these answers.</p>
       </div>
 
-      <dl className="grid grid-cols-3 gap-2 rounded-2xl bg-page p-4 text-center">
+      <dl className="grid grid-cols-3 gap-2 rounded-[1.25rem] bg-card p-4 text-center">
         <div>
           <dt className="text-xs text-muted">Screens</dt>
           <dd data-testid="screens-seen" className="text-xl font-semibold">

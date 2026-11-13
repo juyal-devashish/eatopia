@@ -17,7 +17,7 @@ export function TextScreen({ screen, initial, onSubmit, busy, actionLabel }: Scr
         maxLength={1000}
         rows={5}
         onChange={(e) => setText(e.target.value)}
-        className="rounded-2xl border border-line p-4 text-base"
+        className="rounded-[1.25rem] border border-line bg-card p-4 text-base"
       />
       <ScreenActions>
         <PrimaryButton disabled={!text.trim() || busy} onClick={() => onSubmit(text.trim())}>

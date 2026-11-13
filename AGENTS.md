@@ -27,7 +27,9 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 - **No Health value ever reaches the model.** Only `backend/app/claude_client.py` calls Claude, and it accepts
   member-entered text and catalog references only. The canary test must stay green. Don't weaken it.
 - **Synthetic data only**, labelled as synthetic on screen. No personal data anywhere in the repo.
-- **The repo and the demo are public.** No Eatopia branding, colours, copy or screenshots of their app.
+- **The repo and the demo are public.** The look follows Eatopia's design language (warm off-white, deep green, serif
+  headings, pill buttons), by decision on 2026-11-13. Still no logo, name, copy, typeface, screenshots or signature
+  details of theirs in the UI, and the start screen says it's an independent demo.
 - Health-to-answer mapping is plain code with thresholds in config, never a model call.
 - Tests never call the network or a paid API; use recorded fixtures and the fake Claude client. Ask before running
   more than about 10 real API calls.

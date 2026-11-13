@@ -59,7 +59,7 @@ export function MatchBox({
               void find();
             }
           }}
-          className="min-h-12 rounded-2xl border border-line px-4 text-base text-ink"
+          className="min-h-12 rounded-[1.25rem] border border-line bg-card px-4 text-base text-ink"
         />
       </label>
       <button

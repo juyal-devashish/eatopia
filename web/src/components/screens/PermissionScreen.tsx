@@ -17,9 +17,9 @@ const READ_TYPE_LABELS: Record<string, string> = {
 export function PermissionScreen({ screen, onSubmit, busy }: ScreenProps) {
   return (
     <>
-      <div className="my-auto rounded-3xl border border-line bg-page p-5">
+      <div className="my-auto rounded-3xl bg-card p-5 shadow-[0_1px_3px_rgb(29_42_36/0.08)]">
         <p className="text-xs font-semibold tracking-wide text-muted uppercase">Simulated permission</p>
-        <h1 className="mt-2 text-xl font-semibold">Allow this app to read from Apple Health?</h1>
+        <h1 className="mt-2 font-serif text-2xl font-medium">Allow this app to read from Apple Health?</h1>
         <p className="mt-2 text-sm text-muted">On a real iPhone this is the system sheet. Here it uses a synthetic member&apos;s data.</p>
         <ul className="mt-4 flex flex-col gap-1.5 text-base">
           {screen.read_types.map((type) => (
