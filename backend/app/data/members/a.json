@@ -1,0 +1,404 @@
+{
+  "id": "a",
+  "label": "Wears a watch",
+  "description": "Everything recorded and recent.",
+  "synthetic": true,
+  "canary_values": [
+    "73.417",
+    "1.6834"
+  ],
+  "biological_sex": "female",
+  "date_of_birth": "1990-03-14",
+  "quantity_samples": [
+    {
+      "type": "HKQuantityTypeIdentifierHeight",
+      "value": 1.6834,
+      "unit": "m",
+      "days_ago": 410,
+      "source": "iPhone (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierBodyMass",
+      "value": 73.417,
+      "unit": "kg",
+      "days_ago": 3,
+      "source": "Smart scale (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierBodyMass",
+      "value": 73.9,
+      "unit": "kg",
+      "days_ago": 17,
+      "source": "Smart scale (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierBodyMass",
+      "value": 74.6,
+      "unit": "kg",
+      "days_ago": 45,
+      "source": "Smart scale (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 9593.0,
+      "unit": "count",
+      "days_ago": 1,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 10058.0,
+      "unit": "count",
+      "days_ago": 2,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 12774.0,
+      "unit": "count",
+      "days_ago": 3,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 8741.0,
+      "unit": "count",
+      "days_ago": 4,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 13582.0,
+      "unit": "count",
+      "days_ago": 5,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 12701.0,
+      "unit": "count",
+      "days_ago": 6,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 6550.0,
+      "unit": "count",
+      "days_ago": 7,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 12079.0,
+      "unit": "count",
+      "days_ago": 8,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 7155.0,
+      "unit": "count",
+      "days_ago": 9,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 9500.0,
+      "unit": "count",
+      "days_ago": 10,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11890.0,
+      "unit": "count",
+      "days_ago": 11,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11336.0,
+      "unit": "count",
+      "days_ago": 12,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 9527.0,
+      "unit": "count",
+      "days_ago": 13,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11036.0,
+      "unit": "count",
+      "days_ago": 14,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11484.0,
+      "unit": "count",
+      "days_ago": 15,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11134.0,
+      "unit": "count",
+      "days_ago": 16,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 7135.0,
+      "unit": "count",
+      "days_ago": 17,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11859.0,
+      "unit": "count",
+      "days_ago": 18,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 8489.0,
+      "unit": "count",
+      "days_ago": 19,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 13525.0,
+      "unit": "count",
+      "days_ago": 20,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 10561.0,
+      "unit": "count",
+      "days_ago": 21,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 9378.0,
+      "unit": "count",
+      "days_ago": 22,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 6721.0,
+      "unit": "count",
+      "days_ago": 23,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11760.0,
+      "unit": "count",
+      "days_ago": 24,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 9808.0,
+      "unit": "count",
+      "days_ago": 25,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 10102.0,
+      "unit": "count",
+      "days_ago": 26,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 7116.0,
+      "unit": "count",
+      "days_ago": 27,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 11850.0,
+      "unit": "count",
+      "days_ago": 28,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 13296.0,
+      "unit": "count",
+      "days_ago": 29,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "type": "HKQuantityTypeIdentifierStepCount",
+      "value": 10250.0,
+      "unit": "count",
+      "days_ago": 30,
+      "source": "Watch (synthetic)"
+    }
+  ],
+  "workouts": [
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 1,
+      "duration_minutes": 38,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 2,
+      "duration_minutes": 30,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 3,
+      "duration_minutes": 58,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 4,
+      "duration_minutes": 48,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 6,
+      "duration_minutes": 26,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 7,
+      "duration_minutes": 53,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 8,
+      "duration_minutes": 33,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 10,
+      "duration_minutes": 32,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 12,
+      "duration_minutes": 55,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 13,
+      "duration_minutes": 41,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 14,
+      "duration_minutes": 31,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 15,
+      "duration_minutes": 39,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 17,
+      "duration_minutes": 56,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 18,
+      "duration_minutes": 60,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 19,
+      "duration_minutes": 48,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 21,
+      "duration_minutes": 29,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 22,
+      "duration_minutes": 46,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 23,
+      "duration_minutes": 45,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 24,
+      "duration_minutes": 26,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 25,
+      "duration_minutes": 41,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 26,
+      "duration_minutes": 56,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 28,
+      "duration_minutes": 44,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeCycling",
+      "days_ago": 33,
+      "duration_minutes": 59,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeTraditionalStrengthTraining",
+      "days_ago": 36,
+      "duration_minutes": 38,
+      "source": "Watch (synthetic)"
+    },
+    {
+      "activity_type": "HKWorkoutActivityTypeRunning",
+      "days_ago": 40,
+      "duration_minutes": 44,
+      "source": "Watch (synthetic)"
+    }
+  ]
+}

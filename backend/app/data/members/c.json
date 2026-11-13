@@ -1,0 +1,11 @@
+{
+  "id": "c",
+  "label": "No data",
+  "description": "Nothing in Apple Health, or access denied. HealthKit can't tell the two apart.",
+  "synthetic": true,
+  "canary_values": [],
+  "biological_sex": "notSet",
+  "date_of_birth": null,
+  "quantity_samples": [],
+  "workouts": []
+}
