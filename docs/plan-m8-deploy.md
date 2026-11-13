@@ -1,4 +1,4 @@
-# M8 plan: deploy to Railway (code prep done; nothing created yet)
+# M8 plan: deploy (API and Postgres on Railway, web on Vercel)
 
 Everything below stays on paper until you approve each gate. Railway CLI 5.71 is signed in as you, in the
 workspace "Devashish Juyal's Projects" (existing projects: `backend`, `sama4`). That workspace has **no spending
@@ -72,3 +72,22 @@ Done on `feat/m8-deploy`; nothing created or deployed.
   baked in, and all 43 end-to-end runs against that same standalone server. The Docker images themselves are
   first built by Railway at gate C.
 - Sentry: not used, by decision.
+
+## Where things stand (2026-11-13)
+
+Railway's free plan allows five services and `sama4` uses three, so the web app moved to Vercel (your call).
+
+| Piece | Where | Address | State |
+|---|---|---|---|
+| Postgres | Railway, project `eatopia-demo` | private only | running |
+| API | Railway, project `eatopia-demo`, service `api` | https://api-production-6dc83d29.up.railway.app | **live**: it built and deployed by itself when the service was created (migrations ran, `/health` passes). No Anthropic key yet, so model calls fail and the app falls back to the full lists. |
+| Web | Vercel, project `eatopia-demo` (root `web/`) | https://eatopia-demo.vercel.app | created, **not deployed**. `NEXT_PUBLIC_API_URL` is set for production builds; preview builds are off. |
+
+- Railway's `backend` project (empty, never deployed) was deleted with your OK; Railway removes it for good on
+  2026-11-15. An empty `api` left by the first, failed apply was deleted the same way.
+- The API only accepts browser calls from `https://eatopia-demo.vercel.app`.
+- **Merging to `main` deploys.** Vercel builds `web` on every push to `main`. Railway rebuilds `api` when
+  `backend/**` changes.
+
+Next: gate B (you add `ANTHROPIC_API_KEY` to the `api` service in Railway), then gate C (merge to `main`, which
+deploys the web app, then check both orders on a laptop and a phone).

@@ -36,7 +36,10 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 
 ## Deploying
 
-- Railway project `eatopia-demo`, described in `.railway/railway.ts`; see `docs/plan-m8-deploy.md`.
+- API and Postgres: Railway project `eatopia-demo`, described in `.railway/railway.ts`. Web: Vercel project
+  `eatopia-demo` (root `web/`). See `docs/plan-m8-deploy.md`.
+- **Merging to `main` deploys**: Vercel builds the web app on every push to `main`; Railway rebuilds the API when
+  `backend/**` changes. Ask before merging anything that would change what's live.
 - `railway config plan` is safe. **Ask before** `railway config apply`, `railway domain`, `railway up` or any
   other command that creates, changes or deploys anything.
 - `ANTHROPIC_API_KEY` is set by hand in the Railway dashboard, never in the repo or a command line.

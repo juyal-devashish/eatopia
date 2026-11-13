@@ -40,6 +40,7 @@ export default defineConfig({
       env: {
         ...process.env,
         NEXT_PUBLIC_API_URL: `http://localhost:${API_PORT}`,
+        NEXT_OUTPUT: "standalone",
         PORT: String(WEB_PORT),
         HOSTNAME: "localhost",
       },

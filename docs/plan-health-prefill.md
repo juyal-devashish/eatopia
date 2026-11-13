@@ -21,7 +21,7 @@ phone's width and proportions in the middle of the page, with no device frame.
 
 | Layer | Theirs (source) | In this demo |
 |---|---|---|
-| Web app | Next.js App Router on Railway (eatopia.ai and app.eatopia.ai, checked 2026-11-13) | Next.js App Router, TypeScript strict, on Railway |
+| Web app | Next.js App Router on Railway (eatopia.ai and app.eatopia.ai, checked 2026-11-13) | Next.js App Router, TypeScript strict, on **Vercel** (Railway's free plan had no room for a third service) |
 | Backend | FastAPI + Postgres on Railway (privacy policy, technical cofounder's profile) | FastAPI + Postgres on Railway |
 | AI | Claude via the Anthropic API; Sage answers from member data through 6 read-only tools (profile) | Anthropic Python SDK, one backend module |
 | Errors | Sentry (privacy policy) | Not used in the demo (decided 2026-11-13); Railway's logs instead |
@@ -295,7 +295,7 @@ eatopia/
 | M5 | Web: "Health first" with benefit screen, permission sheet, review card, estimate hints, Behind the scenes panel | Playwright and axe runs pass for all members |
 | M6 | "Something else" mapping and the condition-match eval | eval run and reported (≈50 calls, with your OK) |
 | M7 | Finish screen comparison, dietitian view and summary (Health values filled in by code) | both render for all members |
-| M8 | Deploy to Railway (web, API, Postgres) | full flow works on the public link, on laptop and phone |
+| M8 | Deploy: API and Postgres on Railway, web on Vercel | full flow works on the public link, on laptop and phone |
 | M9 | Measure and record | timings, a 60–90 second video, a README a reviewer can read in five minutes (the link, the one HealthKit request, the firewall test), and the note |
 
 Rough size: 5–7 focused days. M5 (the suggestion screens and live panel) carries the most risk.

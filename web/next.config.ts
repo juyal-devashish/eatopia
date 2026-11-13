@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // A self-contained server for the Docker image (web/Dockerfile).
-  output: "standalone",
+  // Vercel builds Next.js natively. The Docker image and the end-to-end runs ask for a self-contained server.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
