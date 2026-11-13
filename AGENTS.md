@@ -13,7 +13,11 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
   The dev server uses `intake` (`DATABASE_URL`).
 - Model calls need `ANTHROPIC_API_KEY` (or an `ant auth login` profile). Tests never need it: they use
   `tests/fakes.py`.
-- `make web-dev`: web app on http://localhost:3000.
+- `make web-dev`: web app on http://localhost:3000 (Next picks 3001 if 3000 is busy; then start the API with
+  `ALLOWED_ORIGINS='["http://localhost:3001"]'`).
+- `make e2e`: Playwright runs on desktop and phone sizes. It starts its own API (port 8100, database
+  `intake_e2e`) and a production build of the web app (port 3100). First time: `createdb intake_e2e` and
+  `cd web && npx playwright install chromium`.
 
 ## Rules for this repo
 
