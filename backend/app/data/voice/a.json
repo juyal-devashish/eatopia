@@ -1,0 +1,9 @@
+{
+  "synthetic": true,
+  "note": "What synthetic member A says on each voice screen. Written by us; simulates on-device dictation.",
+  "scripts": {
+    "voice_goals": "Mostly I want more energy. I'm happy where I am, so I'd like to stay where I am. My doctor mentioned prediabetes at my last check-up, so I want to get ahead of that. The hard part is that my schedule keeps changing, and half the time I'm not sure what to eat. I usually eat three times a day.",
+    "voice_food": "I'm vegetarian. Lactose upsets my stomach, so I keep away from dairy. I'd rather avoid mushrooms. At home we cook mostly South Asian food, and I love Mediterranean too.",
+    "voice_kitchen": "I do most of the cooking myself. On weeknights I have about 15 to 30 minutes for dinner. Our food budget feels comfortable. We order in once or twice a week. I take vitamin D every morning. Nothing else really."
+  }
+}

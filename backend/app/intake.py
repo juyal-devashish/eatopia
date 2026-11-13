@@ -16,6 +16,7 @@ from app.health.models import MemberId, resolve
 from app.health.summary import HealthSummaryV1, build_summary
 from app.questions import MODES, Mode, QuestionSchema, Screen
 from app.rules import RuleResult, suggest
+from app.voice import load_scripts
 
 Source = Literal["health_confirmed", "health_changed", "voice_confirmed", "member"]
 VOICE_PURPOSE = "voice_extract"
@@ -60,6 +61,7 @@ class SessionState(BaseModel):
     tap_count: int
     stats: RunStats
     finished: bool
+    voice_scripts: dict[str, str]  # simulated dictation for the voice screens (synthetic member text)
 
 
 def _member_id(session: IntakeSession) -> MemberId:
@@ -227,6 +229,7 @@ def state(
         tap_count=session.tap_count,
         stats=_stats(answers, schema),
         finished=next_screen is None,
+        voice_scripts=load_scripts(_member_id(session)) if session.mode == "health_first" else {},
     )
 
 

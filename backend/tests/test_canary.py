@@ -43,6 +43,11 @@ def _run_with_model_calls(client: TestClient, member_id: MemberId, mode: str) ->
         screen_id = state["next_screen_id"]
         if screen_id == "health_concern":
             client.post(f"/sessions/{state['id']}/conditions/match", json={"text": FREE_TEXT, "request_key": _key()})
+        if screen_id.startswith("voice_"):
+            said = state["voice_scripts"].get(screen_id, FREE_TEXT)
+            client.post(
+                f"/sessions/{state['id']}/screens/{screen_id}/extract", json={"text": said, "request_key": _key()}
+            )
         if screen_id in ("allergies", "eating_barriers", "diet_pattern"):
             client.post(
                 f"/sessions/{state['id']}/screens/{screen_id}/match",

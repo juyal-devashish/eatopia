@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.answers import InvalidAnswer
+from app.answers import InvalidAnswer, validate
 from app.baseline import Baseline, one_per_screen
 from app.catalog import ConditionCatalog, load_catalog
 from app.claude_client import (
@@ -19,10 +19,14 @@ from app.claude_client import (
     InvalidMemberText,
     MemberText,
     ModelTransport,
+    VoiceQuestion,
+    VoiceQuestions,
+    build_extract_request,
     build_match_request,
     build_option_request,
     build_summary_request,
     call_model,
+    parse_extract,
     parse_summary,
 )
 from app.clock import get_now
@@ -34,6 +38,7 @@ from app.health.members import MEMBER_IDS, load_member
 from app.health.models import MemberId
 from app.health.summary import HealthSummaryV1
 from app.intake import (
+    VOICE_PURPOSE,
     SessionConflict,
     SessionNotFound,
     SessionState,
@@ -101,7 +106,7 @@ class AnswerIn(BaseModel):
 
 
 class MatchIn(BaseModel):
-    text: str = Field(max_length=2_000)
+    text: str = Field(max_length=4_000)
     request_key: Key
 
 
@@ -133,6 +138,47 @@ class SummaryOut(BaseModel):
     written_by_model: bool
     writer: str | None  # the model that answered, or the offline stand-in
     health_values_filled: list[str]
+
+
+class ExtractOut(BaseModel):
+    """What the member said, turned into answers for them to confirm. `null` means not mentioned: the web app
+    asks that question on the same screen. When extraction fails, every answer is null."""
+
+    call_id: int
+    status: str
+    answers: dict[str, Any]
+
+
+def voice_questions(screen: Screen, screens: dict[str, Screen]) -> VoiceQuestions:
+    """The covered questions as the model may see them: wording and option ids from our schema only."""
+    items = []
+    for covered_id in screen.covers:
+        q = screens[covered_id]
+        options = tuple((o.id, o.label) for o in q.options if not o.free_text)
+        items.append(VoiceQuestion(id=q.id, kind=q.kind, title=q.title, options=options))  # type: ignore[arg-type]
+    return VoiceQuestions(items=tuple(items))
+
+
+def _normalise(text: str) -> str:
+    return " ".join(text.lower().split())
+
+
+def checked_answers(
+    raw: dict[str, Any], screen: Screen, screens: dict[str, Screen], said: MemberText
+) -> dict[str, Any]:
+    """Drop anything that isn't a valid answer, and any "own words" the member didn't actually say."""
+    answers: dict[str, Any] = {}
+    for covered_id in screen.covers:
+        value = raw.get(covered_id)
+        if value is not None and screens[covered_id].kind == "text" and _normalise(value) not in _normalise(said.text):
+            value = None
+        if value is not None:
+            try:
+                validate(screens[covered_id], value)
+            except InvalidAnswer:
+                value = None
+        answers[covered_id] = value
+    return answers
 
 
 class EgressEntry(BaseModel):
@@ -296,6 +342,47 @@ def create_app() -> FastAPI:
         options = CatalogRef(items=tuple((o.id, o.label) for o in screen.options if not o.free_text))
         request = build_option_request(text, screen.title, options, config.llm)
         return await run_match(db, session, "option_match", body.request_key, request, options, now, config, transport)
+
+    @app.post("/sessions/{session_id}/screens/{screen_id}/extract")
+    async def extract(
+        session_id: uuid.UUID,
+        screen_id: str,
+        body: MatchIn,
+        db: Db,
+        now: Now,
+        config: Config,
+        transport: Transport,
+    ) -> ExtractOut:
+        """Fill a voice screen's questions from what the member said. The iPhone app would send its on-device
+        transcript here; the web demo sends a simulated one. Only the text and our own lists reach the model."""
+        session = await run_in_threadpool(_load, db, session_id, now, config)
+        schema = load_schema()
+        screens = {s.id: s for s in schema.screens}
+        screen = screens.get(screen_id)
+        if screen is None or screen.kind != "voice" or session.mode not in screen.modes:
+            raise HTTPException(status_code=404, detail="That screen doesn't take a spoken answer")
+        try:
+            said = MemberText.from_member(body.text, config.llm.max_voice_chars)
+        except InvalidMemberText as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+        questions = voice_questions(screen, screens)
+        catalog = CatalogRef.from_catalog(load_catalog())
+        request = build_extract_request(said, questions, catalog, config.llm)
+
+        def parse(response: dict[str, Any]) -> dict[str, Any]:
+            answers = checked_answers(parse_extract(response, questions, catalog), screen, screens, said)
+            return {"screen_id": screen_id, "answers": answers}
+
+        kind, row = await run_in_threadpool(
+            claim, db, session, VOICE_PURPOSE, body.request_key, request, now, config.llm
+        )
+        if kind == "existing" and row.status == "pending":
+            raise HTTPException(status_code=409, detail="Still listening; try again in a moment")
+        if kind == "claimed":
+            outcome = await call_model(transport, request, parse, config.llm)
+            row = await run_in_threadpool(finish, db, row.id, outcome, now)
+        answers = (row.result or {}).get("answers") if row.status == "ok" else None
+        return ExtractOut(call_id=row.id, status=row.status, answers=answers or {c: None for c in screen.covers})
 
     @app.post("/sessions/{session_id}/summary")
     async def summary(
