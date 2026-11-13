@@ -1,0 +1,8 @@
+{
+  "name": "eatopia-railway",
+  "private": true,
+  "description": "Railway infrastructure-as-code for the demo. The CLI reads railway.ts; this package only provides its types.",
+  "devDependencies": {
+    "railway": "3.17.0"
+  }
+}

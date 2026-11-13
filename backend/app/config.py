@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -54,6 +54,23 @@ class Settings(BaseSettings):
     anthropic_api_key: SecretStr | None = None
     # "offline" swaps Claude for a keyword matcher (end-to-end runs, keyless local use). Never set in production.
     llm_transport: Literal["anthropic", "offline"] = "anthropic"
+    # New sessions one client address may start per hour (0 turns the limit off).
+    sessions_per_hour_per_client: int = 20
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_psycopg(cls, url: str) -> str:
+        """Railway (and most hosts) give `postgres://` or `postgresql://`; SQLAlchemy needs the psycopg driver named."""
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url[len(prefix) :]
+        return url
+
+    @model_validator(mode="after")
+    def _no_stand_in_in_production(self) -> "Settings":
+        if self.environment == "production" and self.llm_transport == "offline":
+            raise ValueError("LLM_TRANSPORT=offline is for tests and local use, never production")
+        return self
 
 
 @lru_cache

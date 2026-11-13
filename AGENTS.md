@@ -7,7 +7,8 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
 
 ## Commands
 
-- `make check`: everything CI runs (backend ruff, mypy, pytest; web lint and typecheck). Run it before every commit.
+- `make check`: everything CI runs (backend ruff, mypy, pytest; web lint and typecheck; the Railway file's
+  types). Run it before every commit.
 - `make backend-dev`: API on http://localhost:8000. `make migrate` applies database migrations.
 - Backend tests need Postgres: a local `intake_test` database (`createdb intake_test`), or `TEST_DATABASE_URL`.
   The dev server uses `intake` (`DATABASE_URL`).
@@ -32,6 +33,13 @@ deployed on Railway. The plan is [docs/plan-health-prefill.md](docs/plan-health-
   more than about 10 real API calls.
 - `web/` uses a newer Next.js than you may know: read `web/AGENTS.md` and the guide in
   `web/node_modules/next/dist/docs/` before writing web code.
+
+## Deploying
+
+- Railway project `eatopia-demo`, described in `.railway/railway.ts`; see `docs/plan-m8-deploy.md`.
+- `railway config plan` is safe. **Ask before** `railway config apply`, `railway domain`, `railway up` or any
+  other command that creates, changes or deploys anything.
+- `ANTHROPIC_API_KEY` is set by hand in the Railway dashboard, never in the repo or a command line.
 
 ## Git
 
