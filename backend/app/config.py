@@ -27,7 +27,7 @@ class RuleSettings(BaseModel):
 class LlmSettings(BaseModel):
     """Model, limits and caps for every Claude call. The public demo link spends real money, so caps are low."""
 
-    model: str = "claude-opus-5-5"
+    model: str = "claude-sonnet-5-5"  # measured on the condition-match eval; see evals/results/README.md
     timeout_seconds: float = 30
     max_retries: int = 1
     session_cap: int = 5

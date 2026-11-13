@@ -217,7 +217,7 @@ Only in `backend/app/claude_client.py`. Model, effort and limits come from confi
 3. **Dietitian summary.** The model gets member-entered answers and field names only, and writes `{{weight}}`-style
    placeholders; the backend fills in the Health values.
 
-Defaults: `claude-opus-5-5`, low effort for matching and medium for the summary, structured outputs, and the API's
+Defaults: `claude-sonnet-5-5` (chosen after the eval run below; Opus 5.5 was the first default), low effort for matching and medium for the summary, structured outputs, and the API's
 server-side refusal fallback turned on. Refusals, timeouts and parse failures are stored as failed attempts.
 
 **Offline stand-in:** `LLM_TRANSPORT=offline` swaps Claude for a keyword matcher, so end-to-end runs never call a

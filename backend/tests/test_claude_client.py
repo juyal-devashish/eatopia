@@ -95,7 +95,7 @@ def test_request_limits_answers_to_catalog_ids() -> None:
 
     assert schema["properties"]["matches"]["items"]["properties"]["id"]["enum"] == CATALOG.ids()
     assert request["output_config"]["effort"] == "low"
-    assert request["model"] == "claude-opus-5-5"
+    assert request["model"] == "claude-sonnet-5-5"
     assert request["fallbacks"] == "default"
     assert "<member_text>heartburn</member_text>" in request["messages"][0]["content"]
 
