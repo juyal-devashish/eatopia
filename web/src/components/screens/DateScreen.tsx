@@ -17,7 +17,7 @@ function parts(value: unknown): { year: string; month: string; day: string } {
   return { year: "", month: "", day: "" };
 }
 
-const select = "min-h-12 rounded-2xl border border-line bg-surface px-3 text-base";
+const select = "min-h-14 rounded-[1.25rem] border border-line bg-card px-3 text-base";
 
 export function DateScreen({ screen, initial, onSubmit, busy, actionLabel }: ScreenProps) {
   const [date, setDate] = useState(() => parts(initial));

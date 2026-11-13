@@ -53,10 +53,10 @@ export function DietitianView({
     <div data-testid="dietitian" className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 pt-6 pb-6">
       <div>
         <p className="text-xs font-semibold tracking-wide text-muted uppercase">Dietitian view · synthetic member {session.member_id.toUpperCase()}</p>
-        <h1 className="mt-1 text-2xl font-semibold">Intake record</h1>
+        <h1 className="mt-1 font-serif text-[30px] font-medium">Intake record</h1>
       </div>
 
-      <section aria-labelledby="summary-heading" className="rounded-2xl border border-line p-4">
+      <section aria-labelledby="summary-heading" className="rounded-[1.25rem] bg-card p-4">
         <h2 id="summary-heading" className="text-sm font-semibold">
           Summary
         </h2>
@@ -93,7 +93,7 @@ export function DietitianView({
               {section.title}
               {section.assumed ? " (illustrative)" : ""}
             </h2>
-            <dl className="flex flex-col divide-y divide-line rounded-2xl border border-line">
+            <dl className="flex flex-col divide-y divide-line rounded-[1.25rem] bg-card">
               {inSection.map((q) => {
                 const answer = session.answers[q.id];
                 const source = SOURCE[answer.source];

@@ -55,7 +55,7 @@ export function BehindTheScenes({ session, form }: { session: SessionState; form
   return (
     <div className="flex flex-col gap-6 text-sm">
       <div>
-        <h2 className="text-lg font-semibold">Behind the scenes</h2>
+        <h2 className="font-serif text-2xl font-medium">Behind the scenes</h2>
         <p className="text-muted">
           {session.mode === "today"
             ? "Today's order: Apple Health is requested, but no answer comes from it."

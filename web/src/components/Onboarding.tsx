@@ -137,46 +137,56 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
   const index = screens.indexOf(screen);
   const section = form.sections.find((s) => s.id === screen.section);
   const progress = Math.round((index / screens.length) * 100);
+  // One bar segment per section, filled as the member moves through it.
+  const segments = form.sections.map((sec) => {
+    const inSection = screens.filter((s) => s.section === sec.id);
+    const done = inSection.filter((s) => screens.indexOf(s) < index).length;
+    return { id: sec.id, fill: inSection.length ? done / inSection.length : 0 };
+  });
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center gap-3 px-5 pt-2 pb-3">
+      <div className="flex shrink-0 justify-end gap-4 px-5 pt-1 text-[13px] font-semibold text-muted">
+        <button
+          type="button"
+          onClick={() => setShowPanel((open) => !open)}
+          aria-expanded={showPanel}
+          className="min-h-9 hover:text-ink lg:hidden"
+        >
+          Details
+        </button>
+        <button type="button" onClick={onExit} className="min-h-9 hover:text-ink">
+          Exit
+        </button>
+      </div>
+      <div className="flex shrink-0 items-center gap-3 px-5 pb-4">
         <button
           type="button"
           onClick={back}
           disabled={history.length === 0 || busy}
           aria-label="Back"
-          className="grid size-11 shrink-0 place-items-center rounded-full bg-page text-lg disabled:opacity-40"
+          className="grid size-12 shrink-0 place-items-center rounded-full bg-card text-xl text-ink shadow-[0_1px_3px_rgb(29_42_36/0.08)] disabled:opacity-40"
         >
           ‹
         </button>
-        <div className="flex-1">
-          <div
-            role="progressbar"
-            aria-label="Progress"
-            aria-valuenow={progress}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            className="h-1.5 overflow-hidden rounded-full bg-line"
-          >
-            <div className="h-full rounded-full bg-accent" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="mt-1 text-xs font-semibold text-muted">
-            {section?.title}
-            {section?.assumed ? " · illustrative" : ""}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowPanel((open) => !open)}
-          aria-expanded={showPanel}
-          className="min-h-11 px-1 text-sm font-semibold text-accent lg:hidden"
+        <div
+          role="progressbar"
+          aria-label="Progress"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="flex flex-1 gap-1.5"
         >
-          Details
-        </button>
-        <button type="button" onClick={onExit} className="min-h-11 px-1 text-sm font-semibold text-accent">
-          Exit
-        </button>
+          {segments.map((seg) => (
+            <div key={seg.id} className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
+              <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round(seg.fill * 100)}%` }} />
+            </div>
+          ))}
+        </div>
+        <p className="shrink-0 text-right text-[13px] font-semibold text-muted">
+          {section?.title}
+          {section?.assumed ? <span className="sr-only"> (illustrative)</span> : null}
+        </p>
       </div>
       <div
         key={screen.id}

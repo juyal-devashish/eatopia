@@ -8,7 +8,8 @@ and turns Health data into **answers the member confirms**: five facts on one re
 hints. Plain code does that mapping; the model never sees a Health value. Claude is used only where free text helps:
 matching "my sugar was high at my last check-up" to a condition list, and writing a short note for the dietitian.
 
-Built as a work sample for Eatopia. Not affiliated with Eatopia; own design, synthetic data, no real member data.
+Built as a work sample for Eatopia. Not affiliated with Eatopia: the look follows its design language, but no logo,
+name, copy or screenshots of its app are used. Synthetic data only, no real member data.
 
 ## Try it in two minutes
 

@@ -129,7 +129,7 @@ export function ChoiceScreen({ screen, initial, onSubmit, busy, suggestion, acti
                 maxLength={300}
                 onChange={(event) => setPicked((p) => ({ ...p, [option.id]: event.target.value }))}
                 placeholder="Tell us more"
-                className="min-h-12 rounded-2xl border border-line px-4 text-base"
+                className="min-h-12 rounded-[1.25rem] border border-line bg-card px-4 text-base"
               />
             ) : null}
           </div>

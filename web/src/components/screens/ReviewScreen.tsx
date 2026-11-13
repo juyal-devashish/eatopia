@@ -63,7 +63,7 @@ export function ReviewScreen({ screen, rows, suggestions, screensById, earlier, 
             <li
               key={row}
               data-row={row}
-              className={`rounded-2xl border p-4 ${flagged ? "border-warn-ink/40 bg-warn-soft" : "border-line bg-surface"}`}
+              className={`rounded-2xl border p-4 ${flagged ? "border-warn-ink/40 bg-warn-soft" : "border-transparent bg-card"}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
