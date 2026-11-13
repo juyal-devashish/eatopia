@@ -1,5 +1,7 @@
 from datetime import UTC, date, datetime
 
+import pytest
+
 from app.health.members import load_member
 from app.health.models import resolve
 from app.health.summary import build_summary
@@ -46,3 +48,10 @@ def test_samples_after_now_are_ignored() -> None:
 
     assert summary.latest_weight is not None
     assert summary.latest_weight.value == 73.9
+
+
+@pytest.mark.parametrize("hour", [0, 9, 15, 18, 23])
+def test_workout_count_does_not_depend_on_the_time_of_day(hour: int) -> None:
+    now = NOW.replace(hour=hour, minute=30)
+
+    assert build_summary(resolve(load_member("a"), now), now).workouts_last_28d == 22

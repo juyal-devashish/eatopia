@@ -68,7 +68,8 @@ def build_summary(data: MemberHealthData, now: datetime) -> HealthSummaryV1:
             steps_per_day[sample.start.date()] += sample.value
 
     workouts = [w for w in data.workouts if w.start <= now]
-    workout_window_start = now - timedelta(days=WORKOUT_WINDOW_DAYS)
+    # Whole days, like the step window, so the count doesn't depend on the time of day.
+    workout_window_start = today - timedelta(days=WORKOUT_WINDOW_DAYS)
 
     read_types = sorted(type_id for type_id, samples in by_type.items() if samples)
     if data.biological_sex != "notSet":
