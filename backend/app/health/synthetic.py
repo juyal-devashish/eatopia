@@ -15,9 +15,7 @@ PHONE = "iPhone (synthetic)"
 SCALE = "Smart scale (synthetic)"
 
 
-def _steps(
-    rng: random.Random, days: list[int], mean: int, spread: int, source: str
-) -> list[QuantitySampleSpec]:
+def _steps(rng: random.Random, days: list[int], mean: int, spread: int, source: str) -> list[QuantitySampleSpec]:
     return [
         QuantitySampleSpec(
             type="HKQuantityTypeIdentifierStepCount",

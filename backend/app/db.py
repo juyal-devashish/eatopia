@@ -36,9 +36,7 @@ class HealthSummaryRow(Base):
     __tablename__ = "health_summary"
     __table_args__ = (CheckConstraint("data_class = 'device'", name="health_summary_is_device_data"),)
 
-    session_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("intake_session.id", ondelete="CASCADE"), primary_key=True
-    )
+    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("intake_session.id", ondelete="CASCADE"), primary_key=True)
     schema_version: Mapped[int]
     data: Mapped[dict[str, Any]]
     data_class: Mapped[str] = mapped_column(String(16), default="device")
@@ -60,6 +58,33 @@ class IntakeAnswer(Base):
     idempotency_key: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]
+
+
+class LlmCall(Base):
+    """Every model call and the exact request sent: the log behind the "What the model saw" panel.
+
+    One row per (session, purpose, request key): a retry with the same key returns this row instead of calling
+    the model again. Status is pending, ok, refused, timeout, parse_failed, error or capped.
+    """
+
+    __tablename__ = "llm_call"
+    __table_args__ = (UniqueConstraint("session_id", "purpose", "request_key", name="one_call_per_request"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("intake_session.id", ondelete="CASCADE"))
+    purpose: Mapped[str] = mapped_column(String(32))
+    request_key: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16))
+    model: Mapped[str] = mapped_column(String(64))
+    request: Mapped[dict[str, Any] | None]
+    response: Mapped[dict[str, Any] | None]
+    result: Mapped[dict[str, Any] | None]
+    error: Mapped[str | None] = mapped_column(String(500))
+    input_tokens: Mapped[int | None]
+    output_tokens: Mapped[int | None]
+    latency_ms: Mapped[int | None]
+    created_at: Mapped[datetime]
+    finished_at: Mapped[datetime | None]
 
 
 @lru_cache

@@ -223,8 +223,8 @@ hit, matching falls back to the full condition list and the summary to a templat
 
 ### The privacy firewall
 
-- `claude_client` only accepts `MemberText` and `CatalogRef`. No function in it takes a `HealthSummary`, so passing
-  one is a type error (mypy runs in `make check`).
+- `claude_client` only accepts `MemberText` and `CatalogRef`. No public function in it takes a Health type, and it
+  imports nothing from the Health, rules, answers or database modules; a test checks both.
 - **Canary test:** each synthetic member has unique marker values (for example 73.417 kg, 1.6834 m). A fake
   Anthropic client records every request; the test fails if any marker appears.
 - The "What the model saw" panel and the dietitian view read straight from the `llm_call` log.
@@ -282,10 +282,10 @@ eatopia/
 | M0 | Repo setup: `AGENTS.md`, backend and web skeletons, `make check`, GitHub Actions | `make check` passes in CI |
 | M1 | Question schema and synthetic HealthKit fixtures | schema served from `/form` |
 | M2 | Summary builder, mapping rules, database tables, idempotent and resumable sessions | rule and retry tests pass for A, B and C |
-| M3 | `claude_client`, egress log, canary test, cost caps | canary test passes with a fake client |
+| M3 | `claude_client`, egress log, canary test, cost caps, and the condition-match endpoint (its first user) | canary test passes with a fake client |
 | M4 | Web: start screen, phone frame, "Today's order" end to end | Playwright run passes for all members |
 | M5 | Web: "Health first" with benefit screen, permission sheet, review card, estimate hints, Behind the scenes panel | Playwright and axe runs pass for all members |
-| M6 | Condition matching and "Something else" | eval run and reported (≈50 calls, with your OK) |
+| M6 | "Something else" mapping and the condition-match eval | eval run and reported (≈50 calls, with your OK) |
 | M7 | Finish screen comparison and dietitian view | both render for all members |
 | M8 | Deploy to Railway (web, API, Postgres) with Sentry | full flow works on the public link, on laptop and phone |
 | M9 | Measure and record | timings, a 60–90 second video, a README a reviewer can read in five minutes (the link, the one HealthKit request, the firewall test), and the note |

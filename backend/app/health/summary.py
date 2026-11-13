@@ -87,7 +87,5 @@ def build_summary(data: MemberHealthData, now: datetime) -> HealthSummaryV1:
         latest_weight=_latest(by_type["HKQuantityTypeIdentifierBodyMass"]),
         workouts_last_28d=sum(1 for w in workouts if w.start >= workout_window_start),
         workouts_recorded=len(workouts),
-        daily_steps_30d=tuple(
-            DailySteps(day=day, count=round(count)) for day, count in sorted(steps_per_day.items())
-        ),
+        daily_steps_30d=tuple(DailySteps(day=day, count=round(count)) for day, count in sorted(steps_per_day.items())),
     )

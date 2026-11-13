@@ -32,11 +32,7 @@ def _number(value: Any, key: str, bounds: tuple[float, float], screen_id: str) -
     if not (isinstance(value, dict) and set(value) == {key}):
         raise InvalidAnswer(f"{screen_id}: expected {{'{key}': number}}")
     number = value[key]
-    if (
-        isinstance(number, bool)
-        or not isinstance(number, int | float)
-        or not bounds[0] <= number <= bounds[1]
-    ):
+    if isinstance(number, bool) or not isinstance(number, int | float) or not bounds[0] <= number <= bounds[1]:
         raise InvalidAnswer(f"{screen_id}: {key} out of range")
 
 
@@ -82,9 +78,7 @@ def validate(screen: Screen, value: Any) -> None:
             if value != {"seen": True}:
                 raise InvalidAnswer(f"{screen.id}: expected {{'seen': true}}")
         case "health_permission":
-            if not (
-                isinstance(value, dict) and set(value) == {"granted"} and isinstance(value["granted"], bool)
-            ):
+            if not (isinstance(value, dict) and set(value) == {"granted"} and isinstance(value["granted"], bool)):
                 raise InvalidAnswer(f"{screen.id}: expected {{'granted': true or false}}")
         case "health_review":
             raise InvalidAnswer(f"{screen.id}: submit the review card with its rows")
