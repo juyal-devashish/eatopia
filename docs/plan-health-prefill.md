@@ -279,7 +279,9 @@ eatopia/
 - **Condition-matching eval**, reported the way they report food matching ("81% of 679 foods matched"): about 50
   synthetic phrasings, each with its expected condition or "no match". We report how often the right condition is
   in the top 3, how often a suggestion is wrong, and how often "no match" is correctly returned. About 50 real calls,
-  run only with your OK.
+  run only with your OK. First live run (2026-11-13, Claude Sonnet 5.5, low effort): 45/45 top-3, 45/45 top-1,
+  7/7 correct "no match", no failures, in 22 seconds. The set is clear-cut, so harder cases come next; see
+  `backend/evals/results/README.md`.
 
 ## Milestones (one commit each)
 

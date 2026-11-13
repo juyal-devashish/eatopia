@@ -9,6 +9,7 @@ Refusals, timeouts, errors and parse failures are counted as failed attempts and
 
     uv run python -m evals.condition_match            # dry run with the offline matcher, free
     uv run python -m evals.condition_match --live     # real Claude calls: one per case, costs money
+    uv run python -m evals.condition_match --live --model claude-sonnet-5-5   # another model, same cases
 """
 
 import argparse
@@ -133,9 +134,12 @@ def report(summary: dict[str, Any], label: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--live", action="store_true", help="call Claude (costs money); default is the offline matcher")
+    parser.add_argument("--model", help="model to evaluate instead of the configured one (LlmSettings.model)")
     args = parser.parse_args()
 
     settings = Settings()
+    if args.model:
+        settings.llm = settings.llm.model_copy(update={"model": args.model})
     cases = load_cases()
     transport: ModelTransport = (
         AnthropicTransport(settings.llm, settings.anthropic_api_key) if args.live else OfflineTransport()
@@ -148,7 +152,7 @@ def main() -> None:
     if args.live:
         RESULTS.mkdir(exist_ok=True)
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        out = RESULTS / f"condition_match_{stamp}.json"
+        out = RESULTS / f"condition_match_{settings.llm.model}_{stamp}.json"
         out.write_text(
             json.dumps(
                 {
