@@ -1,8 +1,7 @@
 # M8 plan: deploy (API and Postgres on Railway, web on Vercel)
 
-Everything below stays on paper until you approve each gate. Railway CLI 5.71 is signed in as you, in the
-workspace "Devashish Juyal's Projects" (existing projects: `backend`, `sama4`). That workspace has **no spending
-limit set**.
+Everything below stays on paper until each gate is approved. The Railway workspace used has **no spending limit
+set**, so the app's own caps matter.
 
 ## What goes live
 
@@ -75,7 +74,7 @@ Done on `feat/m8-deploy`; nothing created or deployed.
 
 ## Where things stand (2026-11-13)
 
-Railway's free plan allows five services and `sama4` uses three, so the web app moved to Vercel (your call).
+Railway's free plan allows five services and other projects already use some, so the web app moved to Vercel.
 
 | Piece | Where | Address | State |
 |---|---|---|---|
