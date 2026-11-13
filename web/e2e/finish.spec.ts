@@ -5,25 +5,22 @@ import { runToFinish, startOnboarding } from "./flow";
 
 // The end-to-end API runs with LLM_TRANSPORT=offline, so the summary comes from a labelled stand-in.
 
-test("both orders for one member appear side by side, counts first", async ({ page }) => {
-  await startOnboarding(page, "A", "Today's order");
-  await runToFinish(page);
-  await page.getByRole("button", { name: "Try another member or order" }).click();
-  await startOnboarding(page, "A", "Health first");
+test("the finish screen compares the run with the same questions one per screen", async ({ page }) => {
+  await startOnboarding(page);
   await runToFinish(page);
 
   const table = page.getByTestId("comparison");
   await expect(table).toBeVisible();
-  await expect(table.getByRole("row", { name: /Screens/ })).toContainText("25");
-  await expect(table.getByRole("row", { name: /Screens/ })).toContainText("22");
+  await expect(page.getByTestId("run-Screens")).toHaveText("22");
+  await expect(page.getByTestId("baseline-Screens")).toHaveText("25");
+  await expect(page.getByTestId("baseline-Taps")).toHaveText("45+");
   // The test taps the first option on each screen, so it uses no suggestions: 5 facts come from Health.
-  await expect(table.getByRole("row", { name: /From Apple Health/ })).toContainText("5");
+  await expect(page.getByTestId("run-Filled for you")).toHaveText("5");
   await expect(page.getByTestId("from-health")).toContainText("5 answers filled for you.");
-  await expect(page.getByText(/second run is always faster/)).toBeVisible();
 });
 
 test("the dietitian view shows the summary and where each answer came from", async ({ page }) => {
-  await startOnboarding(page, "A", "Health first");
+  await startOnboarding(page);
   await runToFinish(page);
 
   await page.getByRole("button", { name: "See what the dietitian gets" }).click();
@@ -41,7 +38,7 @@ test("the dietitian view shows the summary and where each answer came from", asy
 });
 
 test("reopening the dietitian view reuses the summary", async ({ page }) => {
-  await startOnboarding(page, "C", "Today's order");
+  await startOnboarding(page);
   await runToFinish(page);
   const calls: string[] = [];
   page.on("request", (r) => {

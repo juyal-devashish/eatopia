@@ -1,21 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import { answerCurrent, currentScreen, runToFinish, startOnboarding } from "./flow";
-
-for (const member of ["A", "B", "C"] as const) {
-  test(`member ${member} completes today's order`, async ({ page }) => {
-    await startOnboarding(page, member, "Today's order");
-
-    const visited = await runToFinish(page);
-
-    expect(visited).toHaveLength(25);
-    expect(visited.indexOf("health_permission_late")).toBeGreaterThan(visited.indexOf("exercise_frequency"));
-    await expect(page.getByTestId("screens-seen")).toHaveText("25");
-  });
-}
+import { answerCurrent, answerUntil, currentScreen, startOnboarding } from "./flow";
 
 test("Back shows the earlier answer and a new answer replaces it", async ({ page }) => {
-  await startOnboarding(page, "A", "Today's order");
+  await startOnboarding(page);
   await page.getByRole("radio", { name: "More energy" }).check();
   await page.getByRole("button", { name: "Continue" }).click();
   await expect.poll(async () => (await currentScreen(page)).id).toBe("dietitian_note");
@@ -29,7 +17,7 @@ test("Back shows the earlier answer and a new answer replaces it", async ({ page
 });
 
 test("a reloaded page offers to resume at the same screen", async ({ page }) => {
-  await startOnboarding(page, "B", "Today's order");
+  await startOnboarding(page);
   await answerCurrent(page);
   await answerCurrent(page);
   const before = await currentScreen(page);
@@ -40,9 +28,12 @@ test("a reloaded page offers to resume at the same screen", async ({ page }) => 
   await expect.poll(async () => (await currentScreen(page)).id).toBe(before.id);
 });
 
-test("weight can be skipped", async ({ page }) => {
-  await startOnboarding(page, "C", "Today's order");
-  while ((await currentScreen(page)).id !== "weight") await answerCurrent(page);
+test("weight can be skipped when Health access is denied", async ({ page }) => {
+  await startOnboarding(page);
+  await answerUntil(page, "health_permission_early");
+  await page.getByRole("button", { name: "Don't allow" }).click();
+  await expect.poll(async () => (await currentScreen(page)).id).toBe("gender_identity");
+  await answerUntil(page, "weight");
 
   await page.getByRole("button", { name: "Add this later" }).click();
 
@@ -50,7 +41,7 @@ test("weight can be skipped", async ({ page }) => {
 });
 
 test("after a reload, Back still reaches earlier answers", async ({ page }) => {
-  await startOnboarding(page, "A", "Today's order");
+  await startOnboarding(page);
   await page.getByRole("radio", { name: "More energy" }).check();
   await page.getByRole("button", { name: "Continue" }).click();
   await expect.poll(async () => (await currentScreen(page)).id).toBe("dietitian_note");

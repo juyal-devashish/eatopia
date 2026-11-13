@@ -8,7 +8,7 @@ import type { Form, MemberSummary, Mode, SessionState } from "@/lib/types";
 import { AppShell } from "./AppShell";
 import { BehindTheScenes } from "./BehindTheScenes";
 import { Onboarding } from "./Onboarding";
-import { OptionRow, PrimaryButton } from "./ui";
+import { PrimaryButton } from "./ui";
 
 const STORAGE_KEY = "intake-demo-session";
 
@@ -47,25 +47,12 @@ function store(active: Active | null) {
   }
 }
 
-const MODES: { id: Mode; label: string; description: string; available: boolean }[] = [
-  {
-    id: "today",
-    label: "Today's order",
-    description: "Every question asked. Apple Health access is requested in section 3.",
-    available: true,
-  },
-  {
-    id: "health_first",
-    label: "Health first",
-    description: "Apple Health access up front, with answers suggested for you to confirm.",
-    available: true,
-  },
-];
+// The demo shows one scenario: a synthetic member whose watch has recorded everything, with Health first.
+const MEMBER = "a";
+const MODE: Mode = "health_first";
 
 export function DemoApp() {
   const [members, setMembers] = useState<MemberSummary[]>([]);
-  const [member, setMember] = useState<string>("a");
-  const [mode, setMode] = useState<Mode>("today");
   const [active, setActive] = useState<Active | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -83,7 +70,7 @@ export function DemoApp() {
     setStarting(true);
     setError(null);
     try {
-      const session = await api.createSession(member, mode, newKey());
+      const session = await api.createSession(MEMBER, MODE, newKey());
       const next = { id: session.id, startedAt: Date.now() };
       store(next);
       setActive(next);
@@ -100,6 +87,8 @@ export function DemoApp() {
     setView(null);
   }
 
+  const member = members.find((m) => m.id === MEMBER);
+
   return (
     <div className="flex min-h-dvh w-full items-center justify-center gap-8">
     <AppShell>
@@ -110,7 +99,9 @@ export function DemoApp() {
           <div>
             <p className="text-xs font-semibold tracking-wide text-accent uppercase">Independent demo · synthetic data only</p>
             <h1 className="mt-2 font-serif text-[34px] leading-[1.1] font-medium">An onboarding that fills itself in</h1>
-            <p className="mt-2 text-muted">Pick a synthetic member and an order, then go through onboarding as they would.</p>
+            <p className="mt-2 text-muted">
+              Apple Health fills in what it already knows and you confirm it, so there&apos;s far less to tap.
+            </p>
           </div>
 
           {resumable ? (
@@ -120,44 +111,14 @@ export function DemoApp() {
             </div>
           ) : null}
 
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-sm font-semibold">Synthetic member</legend>
-            {members.map((m) => (
-              <OptionRow
-                key={m.id}
-                type="radio"
-                name="member"
-                checked={member === m.id}
-                onChange={() => setMember(m.id)}
-                label={`${m.id.toUpperCase()}: ${m.label}`}
-                hint={<span className="sr-only">{m.description}</span>}
-              />
-            ))}
-            <p className="text-sm text-muted">{members.find((m) => m.id === member)?.description}</p>
-          </fieldset>
-
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-sm font-semibold">Order</legend>
-            {MODES.map((m) => (
-              <label
-                key={m.id}
-                className={`flex cursor-pointer gap-3 rounded-[1.25rem] border-2 p-4 has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${mode === m.id ? "border-accent bg-accent-soft" : "border-transparent bg-card"} ${m.available ? "" : "opacity-60"}`}
-              >
-                <span className="flex-1">
-                  <span className="block font-semibold">{m.label}</span>
-                  <span className="block text-sm text-muted">{m.description}</span>
-                </span>
-                <input
-                  type="radio"
-                  name="mode"
-                  className="option-check mt-0.5"
-                  checked={mode === m.id}
-                  disabled={!m.available}
-                  onChange={() => setMode(m.id)}
-                />
-              </label>
-            ))}
-          </fieldset>
+          {member ? (
+            <div className="rounded-[1.25rem] bg-card p-4">
+              <p className="text-sm font-semibold">You&apos;ll go through as a synthetic member</p>
+              <p className="mt-1 text-sm text-muted">
+                {member.label}: {member.description}
+              </p>
+            </div>
+          ) : null}
 
           {error ? (
             <p role="alert" className="text-sm text-red-700">

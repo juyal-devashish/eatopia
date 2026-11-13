@@ -13,20 +13,19 @@ name, copy or screenshots of its app are used. Synthetic data only, no real memb
 
 ## Try it in two minutes
 
-1. Pick member **A** and **Today's order**, tap through, and note the screens and taps on the finish screen.
-2. Start again with member **A** and **Health first**. The finish screen now compares the two runs.
-3. Open **See what the dietitian gets**: a summary, then every answer marked *from Health, confirmed*, *changed* or
+1. Tap **Start onboarding**. You go through as a synthetic member whose watch has recorded everything.
+2. Allow the simulated Apple Health access, check the answers it filled in, and tap through the rest.
+3. The finish screen compares your screens and taps with the same questions asked one per screen.
+4. Open **See what the dietitian gets**: a summary, then every answer marked *from Health, confirmed*, *changed* or
    *entered by member*.
-4. On a laptop, **Behind the scenes** sits beside the app (on a phone, tap **Details**): the member's Health data,
+5. On a laptop, **Behind the scenes** sits beside the app (on a phone, tap **Details**): the member's Health data,
    what each rule did, and every request sent to the model, word for word.
-
-Member **B** has gaps (old weight, no workouts), so the app asks rather than guesses. Member **C** has no data.
 
 ## What was measured
 
 | | |
 |---|---|
-| Screens for member A | 25 in today's order, 22 in Health first, with 5 answers filled from Health and 2 suggested |
+| Screens and taps | 22 screens with 5 answers filled from Health and 2 suggested, against 25 screens and at least 45 taps for the same questions one per screen |
 | Condition matching (Claude Sonnet 5.5) | 45/45 right condition in the top 3 and first; 7/7 correctly "no match", including a prompt injection; 52 synthetic phrasings ([results](backend/evals/results/README.md)) |
 | Keyword baseline on the same set | 13/45 in the top 3 |
 | Live model calls | about 3 s each (2.6 s match, 3.6 s summary; one live check each) |

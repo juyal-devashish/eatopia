@@ -123,6 +123,7 @@ export function Onboarding({ sessionId, startedAt, onExit, onUpdate }: Props) {
     return (
       <FinishScreen
         session={session}
+        baseline={form.baseline}
         startedAt={startedAt}
         finishedAt={finishedAt}
         onDietitian={() => setFinishView("dietitian")}
