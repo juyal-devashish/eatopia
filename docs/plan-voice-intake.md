@@ -44,6 +44,12 @@ The Claude API takes text, not audio, so speech becomes text first:
   the member declines the microphone. The rest of the flow is identical: Claude reads the text and fills the form.
 - End-to-end tests use the typing path. Speech recognition itself is not tested in CI.
 
+Known gap: apps that open links in their own browser view (LinkedIn, Gmail, Slack on iPhone) expose
+`webkitSpeechRecognition` but it does nothing there, so feature detection can't be trusted. The mic is therefore an
+extra: the text box is always on screen, and if recognition errors or hears nothing within a few seconds, the
+screen says "Voice isn't available here, type instead". Step 0 is a throwaway mic test on iPhone Safari, Android
+Chrome and one in-app browser before the voice screen is built.
+
 If browser speech proves unreliable on the target phones, the demo stays typing-first with the mic as an extra;
 the proof of concept (one sentence instead of many screens) holds either way.
 
