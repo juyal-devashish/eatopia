@@ -1,4 +1,4 @@
-# Plan: Health-prefilled onboarding (v5, draft)
+# Plan: Health-prefilled onboarding (v6)
 
 Status: **draft for discussion, not final.** The Health MCP server is deferred (see "Later"). Everything is built in
 Eatopia's own stack. `PLAN.md` holds the earlier research and the privacy rules this plan depends on.
@@ -72,6 +72,27 @@ prefilling also needs height, date of birth and biological sex, which are separa
 Ours: synthetic data only, labelled as synthetic on screen; our own visual design, with no Eatopia branding, screens,
 colours or copy (the repo and the link are public); nothing is saved as an answer until the member confirms it.
 
+## UI rules
+
+1. **Explain the benefit before asking for Health.** A short screen says what connecting gets you ("we'll fill in up
+   to 7 answers"), then the permission sheet. Apple's guidance is to give context before a permission prompt.
+2. **Preselect facts, never estimates.** Facts come straight from Health (height, weight, date of birth, sex at
+   birth, steps). Estimates (exercise frequency, time on your feet) are shown as a highlighted suggestion the member
+   taps. Preselected answers tend to be accepted unread, so only facts earn one.
+3. **One review card for the facts.** All Health facts appear on a single "From Apple Health" card with editable
+   rows, not on separate preselected screens. Rows with weak data need their own tap before the card can be
+   confirmed, so "confirm all" can't skip them.
+4. **Handle weight with care.** Eating disorders are among the conditions Eatopia supports, and weight comes before
+   the health questions. Weight keeps "Add this later", and no weight trend appears anywhere in onboarding.
+5. **Compare runs honestly.** A second run is always faster because the visitor has learned the questions. Lead with
+   counts that learning doesn't change (answers filled for you, taps); show time with that caveat.
+6. **Accessibility basics from day one.** Tap targets at least 44 px; option lists announced as single- or
+   multi-choice groups; full keyboard use; Back keeps earlier answers; reduced-motion respected; the Behind the
+   scenes panel can be collapsed and starts collapsed on phones.
+
+Also: gender identity is never derived from Health's sex field, and condition matches are suggestions the member
+taps, never auto-selected. Free text is used only for open answers; closed questions stay as tap targets.
+
 ## What a visitor sees
 
 **Desktop:** a phone frame in the middle of the page and a "Behind the scenes" panel beside it.
@@ -82,19 +103,26 @@ colours or copy (the repo and the link are public); nothing is saved as an answe
    - **Health first:** the new flow.
 2. **Inside the phone:** one question per screen with tap-to-answer options and a progress bar, like a real app.
 3. **Health first mode:**
-   - A simulated permission sheet, clearly marked "Simulated: Apple Health", appears before "About you".
-   - Answers Health can give are preselected with a source line, for example *"From Apple Health · 30-day average"*,
-     and a **Looks right** button. Tapping another option records an edit.
-   - Weak or missing data is never guessed: the question appears unselected, as today.
+   - Before "About you", a benefit screen (*"Connect Apple Health and we'll fill in up to 7 answers for you"*), then a
+     simulated permission sheet marked "Simulated: Apple Health".
+   - **Review card, "From Apple Health":** height, weight, date of birth, sex at birth and steps, each row with its
+     value, source and date (for example *"30-day average · updated today"*), editable in place. Weak rows (weight
+     31–90 days old) are flagged and need their own tap before **Confirm** works. Weight offers "Add this later".
+     These questions then don't appear again later in the flow.
+   - **Estimates keep their own screens:** exercise frequency and time on your feet show the suggested option
+     highlighted with *"Suggested from Apple Health"*, not selected. The member taps to choose.
+   - Missing data is never guessed: that row is dropped from the card and the question is asked as today.
+   - Gender identity is always asked; it is never derived from Health.
 4. **Your health:** the member can type the concern in a sentence. Claude suggests up to three matches from the
    condition list; the member taps one, or opens the full list.
-5. **Finish screen:** time taken, taps and questions answered in this run. After trying both modes, it shows them side
-   by side: *"Your run: Today's order 2m 10s, 24 taps · Health first 58s, 11 taps."* (Example numbers only; the real
-   ones come from the visitor's own runs.)
+5. **Finish screen:** answers filled for you, taps and time for this run. After both modes, they appear side by side,
+   counts first: *"Health first: 5 filled for you, 2 suggested, 14 taps · Today's order: 0 filled, 26 taps."* Time is
+   shown with a note that second runs are faster because you know the questions. (Example numbers only; the real ones
+   come from the visitor's own runs.)
 6. **Dietitian view** (button on the finish screen): the intake record, each answer marked `from Health, confirmed`,
    `from Health, changed` or `entered by member`, plus the model-call log.
 
-**Behind the scenes panel**, updated live:
+**Behind the scenes panel**, collapsible (collapsed by default on phones), updated live:
 - the Health summary for this member (the member's own values, which is fine to show them);
 - which rule produced each suggestion, and why a question was left unselected;
 - **What the model saw:** every request sent to Claude, word for word.
@@ -141,17 +169,18 @@ fixed clock.
 
 ### Mapping rules (plain code, thresholds in config)
 
-| Question | Rule | Leave unselected when |
-|---|---|---|
-| Sex at birth | `biologicalSex` female/male → option | not set or "other" |
-| Date of birth | `dateOfBirth` → picker | not set |
-| Height | latest height sample | none |
-| Weight | latest sample ≤ 30 days → preselect; 31–90 days → preselect and mark "please check" | none, or older than 90 days |
-| Exercise | workouts in last 28 days ÷ 4 → their buckets | **no workout ever recorded** (can't tell "doesn't exercise" from "doesn't log") |
-| Steps | median of days with data over 30 days → their buckets | fewer than 14 days with data |
-| On your feet | from the same step median (under 5,000 sedentary; 5,000–7,499 lightly; 7,500–9,999 moderately; 10,000+ very active), labelled "suggested from your steps" | the steps rule left it unselected |
+| Question | Kind | Rule | Ask as today when |
+|---|---|---|---|
+| Sex at birth | fact (card) | `biologicalSex` female/male → option | not set or "other" |
+| Date of birth | fact (card) | `dateOfBirth` | not set |
+| Height | fact (card) | latest height sample | none |
+| Weight | fact (card) | latest sample ≤ 30 days; 31–90 days → flagged row needing its own tap | none, or older than 90 days |
+| Steps | fact (card) | median of days with data over 30 days → their buckets | fewer than 14 days with data |
+| Exercise | estimate (hint) | workouts in last 28 days ÷ 4 → their buckets | **no workout ever recorded** (can't tell "doesn't exercise" from "doesn't log") |
+| On your feet | estimate (hint) | from the step median (under 5,000 sedentary; 5,000–7,499 lightly; 7,500–9,999 moderately; 10,000+ very active) | the steps rule had too little data |
 
-Every suggestion carries its source, date range and rule id.
+Every suggestion carries its kind, source, date range and rule id. Facts go on the review card; estimates are
+highlighted, never selected.
 
 ### Where Claude is used
 
@@ -186,7 +215,10 @@ hit, matching falls back to the full condition list and the summary to a templat
   the phone frame.
 - `PhoneFrame` (about 390 × 844, our own design) wraps the onboarding; below about 500 px wide it renders full screen.
 - Screens are generated from the question schema: single choice, multiple choice, wheel-style date and number
-  pickers, interstitial cards. One component per kind.
+  pickers, interstitial cards, the benefit screen, the permission sheet and the Health review card. One component
+  per kind.
+- Accessibility per the UI rules: native radio and checkbox semantics under the styling, visible focus, 44 px
+  targets, Back that keeps answers, `prefers-reduced-motion` respected. Checked with an axe scan in Playwright.
 - Taps and timings are counted on the client and sent with each answer.
 - Use the current stable Next.js and read its docs before writing code; it changes quickly.
 
@@ -229,7 +261,7 @@ eatopia/
 | M2 | Summary builder, mapping rules, database tables | rule tests pass for A, B and C |
 | M3 | `claude_client`, egress log, canary test, cost caps | canary test passes with a fake client |
 | M4 | Web: start screen, phone frame, "Today's order" end to end | Playwright run passes for all members |
-| M5 | Web: "Health first" with permission sheet, suggestions, confirm and edit, Behind the scenes panel | Playwright run passes for all members |
+| M5 | Web: "Health first" with benefit screen, permission sheet, review card, estimate hints, Behind the scenes panel | Playwright and axe runs pass for all members |
 | M6 | Condition matching and "Something else" | live check passes (≈10 calls) |
 | M7 | Finish screen comparison and dietitian view | both render for all members |
 | M8 | Deploy to Railway (web, API, Postgres) with Sentry | full flow works on the public link, on laptop and phone |
@@ -239,8 +271,9 @@ Rough size: 5–7 focused days. M5 (the suggestion screens and live panel) carri
 
 ## What we measure (and quote)
 
-For each synthetic member, both modes: questions shown, taps and time to finish, from our own runs. We quote what
-we measure, never "15 minutes to 3".
+For each synthetic member, both modes: answers filled for you, questions shown and taps, from our own runs. Time is
+measured too, with each mode run first half the time, since a second run is always faster. We quote what we
+measure, never "15 minutes to 3".
 
 ## Risks and open questions
 
