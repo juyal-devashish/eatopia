@@ -72,6 +72,47 @@ def member_answers(schema: QuestionSchema, answers: dict[str, Any], catalog: Con
     return MemberAnswers(items=tuple(items))
 
 
+# How each Health-linked answer reads inside a sentence of the summary.
+_PHRASES: dict[str, dict[str, str]] = {
+    "exercise_frequency": {
+        "d0": "doesn't exercise regularly",
+        "d1_2": "exercises 1 to 2 days a week",
+        "d3_4": "exercises 3 to 4 days a week",
+        "d5_6": "exercises 5 to 6 days a week",
+        "d7": "exercises every day",
+        "varies": "exercises on a schedule that varies a lot",
+    },
+    "activity_level": {
+        "sedentary": "is mostly sitting during the day",
+        "light": "is lightly active day to day",
+        "moderate": "is moderately active day to day",
+        "very": "is very active day to day",
+        "varies": "has activity that varies a lot from day to day",
+    },
+}
+
+
+def _phrase(screen: Screen, value: Any, catalog: ConditionCatalog) -> str:
+    """An answer as a short phrase that reads naturally mid-sentence."""
+    if screen.id in _PHRASES and isinstance(value, str):
+        return _PHRASES[screen.id].get(value, format_answer(screen, value, catalog).lower())
+    match screen.id:
+        case "sex_at_birth":
+            return f"assigned {format_answer(screen, value, catalog).lower()} at birth"
+        case "date_of_birth":
+            return f"born {format_answer(screen, value, catalog)}"
+        case "height":
+            return f"{format_answer(screen, value, catalog)} tall"
+        case "steps":
+            return (
+                "an unknown number of steps a day"
+                if value == "not_sure"
+                else f"{format_answer(screen, value, catalog)} steps a day"
+            )
+        case _:
+            return format_answer(screen, value, catalog)
+
+
 def fill_placeholders(
     summary: str, schema: QuestionSchema, answers: dict[str, Any], catalog: ConditionCatalog
 ) -> tuple[str, list[str]]:
@@ -87,7 +128,7 @@ def fill_placeholders(
         used.append(name)
         if answers.get(name) is None:
             return NOT_PROVIDED
-        return format_answer(screens[name], answers[name], catalog)
+        return _phrase(screens[name], answers[name], catalog)
 
     return _PLACEHOLDER.sub(replace, summary), used
 
