@@ -1,6 +1,22 @@
+<div align="center">
+
 # Health first, then voice: a 7-screen onboarding
 
-**Live demo: https://eatopia-demo.vercel.app** (synthetic data only; best on a phone)
+**A nutrition app's 25-screen onboarding, rebuilt as 7: Apple Health fills what it knows, three voice prompts fill the rest, and no health value ever reaches the model.**
+
+[**Live demo →**](https://eatopia-demo.vercel.app) (best on a phone) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [The privacy test](#the-privacy-test) &nbsp;·&nbsp; [Run it](#run-it-locally)
+
+![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/web-Next.js-000000?logo=nextdotjs)
+![AI: Claude](https://img.shields.io/badge/AI-Claude%20Sonnet%205.5-8A63D2)
+![Privacy: canary-tested](https://img.shields.io/badge/privacy-canary%20tested-2EA44F)
+![Synthetic data only](https://img.shields.io/badge/data-synthetic%20only-critical)
+
+</div>
+
+> [!WARNING]
+> **Synthetic data only.** Every member, Health record and transcript is invented, and the iPhone side (the Health permission sheet and the microphone) is simulated and labelled as such. Built as a work sample; not affiliated with Eatopia.
 
 A nutrition app's onboarding asks about 25 screens of questions, and asks for Apple Health access only in its third
 section, after the member has already typed answers Health could have given. This demo asks the same questions in
@@ -166,3 +182,22 @@ and tests; `make e2e` runs Playwright.
   tests cover them (old weight and missing workouts are asked, never guessed).
 - Onboarding sections 5 to 7 (food, kitchen, last details) are an assumed, typical intake.
 - Sessions are anonymous and deleted after 24 hours.
+
+## Repository layout
+
+```
+backend/
+  app/              FastAPI service: questions and catalog, Health rules, voice extraction,
+                    dietitian note, the one Claude client, rate limits, offline stand-in model
+  app/health/       turns a HealthKit summary into suggested answers (plain code, no model)
+  evals/            synthetic voice transcripts and condition phrasings, with scored results
+  migrations/       Alembic migrations
+  tests/            pytest on a real Postgres with a fake model, including the privacy canary
+web/                Next.js app (TypeScript strict): the onboarding, the dietitian view, behind the scenes
+  e2e/              Playwright on desktop and phone sizes, with accessibility scans
+docs/               the demo plan, the Health-prefill architecture and the deploy plan
+```
+
+## License
+
+[MIT](LICENSE) © 2026 Devashish Juyal
